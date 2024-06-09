@@ -3,9 +3,17 @@ import { Quiz } from "../Quiz";
 import { v4 as uuidv4 } from 'uuid';
 import { IoManager } from "./IoManager";
 
+export enum Status {
+   Waiting = "waiting",
+   Started = "started",
+   Ongoing = "ongoing",
+   Finished = "finished",
+}
+
 export interface Room {
    id: string;
    admin: string;
+   status: Status;
    quiz: Quiz;
    users: User[];
 }
@@ -32,6 +40,7 @@ export class QuizManager {
       this.rooms.push({
          id: roomId,
          admin,
+         status: Status.Waiting,
          quiz: new Quiz(roomId),
          users: [],
       })
@@ -49,6 +58,7 @@ export class QuizManager {
 
    addUser(roomId: string, username?: string) {
       const room = this.rooms.find((room: Room) => room.id === roomId);
+      console.log(room?.status)
       if (!room) {
          return { error: "Room doesn't exist" };
       }
@@ -57,11 +67,15 @@ export class QuizManager {
          return { error: "User already in room" };
       }
 
+      if (room.status === Status.Finished || room.status === Status.Ongoing || room.status === Status.Started) {
+         return { error: `Quiz is ${room?.status}` }
+      }
+
       room.users.push({
          id: uuidv4(),
          username: username || ""
       })
-      // return room.quiz.getQuiz();
+      return { status: room.status };
    }
 
    addQuiz(roomId: string, title: string, options: string[], answer: number) {
@@ -83,6 +97,10 @@ export class QuizManager {
       return room.quiz;
    }
 
+   answer() {
+
+   }
+
    start(roomId: string) {
       console.log(roomId)
       const room = this.rooms.find((room: Room) => room.id === roomId)
@@ -99,7 +117,11 @@ export class QuizManager {
          }
       }
       console.log(problem)
-      IoManager.io.to(roomId).emit("problem", problem);
+      room.status = Status.Started;
+      IoManager.io.to(roomId).emit("problem", {
+         problem,
+         status: room.status
+      });
    }
 
    next(roomId: string) {
@@ -116,6 +138,23 @@ export class QuizManager {
             error: "You don't have a problem yet."
          }
       }
-      IoManager.io.to(roomId).emit("problem", problem);
+      room.status = Status.Ongoing;
+      IoManager.io.to(roomId).emit("problem", {
+         problem,
+         status: room.status
+      });
+   }
+
+   endQuiz(roomId: string) {
+      const room = this.rooms.find((room: Room) => room.id === roomId)
+      if (!room) {
+         console.log("No room found")
+         return;
+      }
+
+      room.status = Status.Finished;
+      IoManager.io.to(roomId).emit("end", {
+         status: room.status
+      });
    }
 }

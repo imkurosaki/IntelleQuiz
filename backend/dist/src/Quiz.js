@@ -22,7 +22,13 @@ class Quiz {
         return this.problems;
     }
     start() {
-        return this.problems[this.currentProblem];
+        const problem = this.problems[this.currentProblem];
+        return {
+            id: problem.id,
+            roomId: problem.roomId,
+            title: problem.title,
+            options: problem.options,
+        };
     }
     next() {
         this.currentProblem++;
@@ -30,7 +36,13 @@ class Quiz {
             this.currentProblem--;
             return this.problems[this.currentProblem];
         }
-        return this.problems[this.currentProblem];
+        const problem = this.problems[this.currentProblem];
+        return {
+            id: problem.id,
+            roomId: problem.roomId,
+            title: problem.title,
+            options: problem.options,
+        };
     }
 }
 exports.Quiz = Quiz;

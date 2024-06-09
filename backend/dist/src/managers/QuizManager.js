@@ -1,9 +1,16 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.QuizManager = void 0;
+exports.QuizManager = exports.Status = void 0;
 const Quiz_1 = require("../Quiz");
 const uuid_1 = require("uuid");
 const IoManager_1 = require("./IoManager");
+var Status;
+(function (Status) {
+    Status["Waiting"] = "waiting";
+    Status["Started"] = "started";
+    Status["Ongoing"] = "ongoing";
+    Status["Finished"] = "finished";
+})(Status || (exports.Status = Status = {}));
 class QuizManager {
     constructor() {
         this.rooms = [];
@@ -17,6 +24,7 @@ class QuizManager {
         this.rooms.push({
             id: roomId,
             admin,
+            status: Status.Waiting,
             quiz: new Quiz_1.Quiz(roomId),
             users: [],
         });
@@ -32,6 +40,7 @@ class QuizManager {
     }
     addUser(roomId, username) {
         const room = this.rooms.find((room) => room.id === roomId);
+        console.log(room === null || room === void 0 ? void 0 : room.status);
         if (!room) {
             return { error: "Room doesn't exist" };
         }
@@ -39,11 +48,14 @@ class QuizManager {
         if (user) {
             return { error: "User already in room" };
         }
+        if (room.status === Status.Finished || room.status === Status.Ongoing || room.status === Status.Started) {
+            return { error: `Quiz is ${room === null || room === void 0 ? void 0 : room.status}` };
+        }
         room.users.push({
             id: (0, uuid_1.v4)(),
             username: username || ""
         });
-        // return room.quiz.getQuiz();
+        return { status: room.status };
     }
     addQuiz(roomId, title, options, answer) {
         const room = this.rooms.find((room) => room.id === roomId);
@@ -77,7 +89,11 @@ class QuizManager {
             };
         }
         console.log(problem);
-        IoManager_1.IoManager.io.to(roomId).emit("problem", problem);
+        room.status = Status.Started;
+        IoManager_1.IoManager.io.to(roomId).emit("problem", {
+            problem,
+            status: room.status
+        });
     }
     next(roomId) {
         const room = this.rooms.find((room) => room.id === roomId);
@@ -92,7 +108,22 @@ class QuizManager {
                 error: "You don't have a problem yet."
             };
         }
-        IoManager_1.IoManager.io.to(roomId).emit("problem", problem);
+        room.status = Status.Ongoing;
+        IoManager_1.IoManager.io.to(roomId).emit("problem", {
+            problem,
+            status: room.status
+        });
+    }
+    endQuiz(roomId) {
+        const room = this.rooms.find((room) => room.id === roomId);
+        if (!room) {
+            console.log("No room found");
+            return;
+        }
+        room.status = Status.Finished;
+        IoManager_1.IoManager.io.to(roomId).emit("end", {
+            status: room.status
+        });
     }
 }
 exports.QuizManager = QuizManager;

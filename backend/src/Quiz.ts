@@ -39,7 +39,13 @@ export class Quiz {
    }
 
    start() {
-      return this.problems[this.currentProblem];
+      const problem = this.problems[this.currentProblem];
+      return {
+         id: problem.id,
+         roomId: problem.roomId,
+         title: problem.title,
+         options: problem.options,
+      }
    }
 
    next() {
@@ -48,6 +54,12 @@ export class Quiz {
          this.currentProblem--;
          return this.problems[this.currentProblem];
       }
-      return this.problems[this.currentProblem];
+      const problem = this.problems[this.currentProblem];
+      return {
+         id: problem.id,
+         roomId: problem.roomId,
+         title: problem.title,
+         options: problem.options,
+      }
    }
 }

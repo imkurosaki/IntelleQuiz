@@ -1,34 +1,53 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom"
-import Input from "../components/Input";
+import { useNavigate, useParams } from "react-router-dom"
 import Button from "../components/Button";
 import { io } from 'socket.io-client';
+import Input from "../components/Input";
+import Quizes from "../components/Room/Quizes";
 
 export default function Room() {
    const { roomIdParams } = useParams();
    const [username, setUsername] = useState("");
    const [roomId, setRoomId] = useState("");
    const socket = io("ws://localhost:3000");
+   const navigate = useNavigate();
+   const [status, setStatus] = useState("")
+   const [problem, setProblem] = useState({
+      id: "",
+      roomId: "",
+      title: "",
+      options: [],
+   });
 
    useEffect(() => {
       socket.on("connect", () => { })
 
-      socket.on("error", (data: any) => {
-         console.log("error")
+      socket.on("resultJoin", (data: any) => {
          console.log(data);
+         if (!data.success) {
+            console.log(data);
+            return;
+         }
+         console.log(data.status)
+         setStatus(data.status)
+         navigate(`/room/${roomId}`)
       })
 
-      if (roomId) {
-         socket.on("problem", (data: any) => {
-            console.log(data)
-         })
-      }
+      socket.on("problem", (data: any) => {
+         console.log(data)
+         setProblem(data.problem);
+         setStatus(data.status);
+      })
+
+      socket.on("end", (data: any) => {
+         console.log("quiz is ended");
+         setStatus(data.status);
+      })
 
       return () => { socket.off("connect") }
    }, [socket])
 
    const handleClick = () => {
-      console.log(username)
       socket.emit("JoinUser", {
          username,
          roomId
@@ -43,7 +62,17 @@ export default function Room() {
       </div>
    }
 
-   return <div>
-      Enter room for users {roomId}
-   </div>
+   if (status === "finished") {
+      return <div>
+         The quiz is finished
+      </div>
+   }
+
+   if (status === "waiting") {
+      return <div>
+         Waiting for others
+      </div>
+   }
+
+   return <Quizes problem={problem} socket={socket} />
 }

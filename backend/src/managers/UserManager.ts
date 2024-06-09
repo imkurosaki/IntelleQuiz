@@ -1,5 +1,5 @@
 import { Server, Socket } from "socket.io";
-import { QuizManager } from "./QuizManager";
+import { QuizManager, Status } from "./QuizManager";
 import { IoManager } from "./IoManager";
 
 
@@ -48,6 +48,12 @@ export class UserManager {
          }) => {
             this.quizManager.next(roomId);
          })
+
+         socket.on("end", ({ roomId }: {
+            roomId: string,
+         }) => {
+            this.quizManager.endQuiz(roomId);
+         })
       })
 
       socket.on("JoinUser", ({ username, roomId }: {
@@ -55,13 +61,24 @@ export class UserManager {
          roomId: string;
       }) => {
          const resultJoin = this.quizManager.addUser(roomId, username);
-         if (resultJoin) {
-            socket.emit("error", resultJoin);
+         if (resultJoin.error) {
+            socket.emit("resultJoin", {
+               error: resultJoin.error,
+               success: false
+            });
          } else {
+            socket.emit("resultJoin", {
+               status: resultJoin.status,
+               success: true
+            });
             console.log("Succceessfully join")
             socket.join(roomId);
             // IoManager.io.to(roomId).emit("problem", resultJoin)
          }
+      })
+
+      socket.on("Submit", ({ answer }: { answer: string }) => {
+         console.log(answer);
       })
    }
 }

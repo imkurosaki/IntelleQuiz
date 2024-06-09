@@ -30,17 +30,30 @@ class UserManager {
             socket.on("next", ({ roomId }) => {
                 this.quizManager.next(roomId);
             });
+            socket.on("end", ({ roomId }) => {
+                this.quizManager.endQuiz(roomId);
+            });
         });
         socket.on("JoinUser", ({ username, roomId }) => {
             const resultJoin = this.quizManager.addUser(roomId, username);
-            if (resultJoin) {
-                socket.emit("error", resultJoin);
+            if (resultJoin.error) {
+                socket.emit("resultJoin", {
+                    error: resultJoin.error,
+                    success: false
+                });
             }
             else {
+                socket.emit("resultJoin", {
+                    status: resultJoin.status,
+                    success: true
+                });
                 console.log("Succceessfully join");
                 socket.join(roomId);
                 // IoManager.io.to(roomId).emit("problem", resultJoin)
             }
+        });
+        socket.on("Submit", ({ answer }) => {
+            console.log(answer);
         });
     }
 }
