@@ -12,12 +12,14 @@ export default function Room() {
    const socket = io("ws://localhost:3000");
    const navigate = useNavigate();
    const [status, setStatus] = useState("")
+   const [leaderboard, setLeaderboard] = useState([]);
    const [problem, setProblem] = useState({
       id: "",
       roomId: "",
       title: "",
       options: [],
    });
+   const [userId, setUserId] = useState("");
 
    useEffect(() => {
       socket.on("connect", () => { })
@@ -28,7 +30,7 @@ export default function Room() {
             console.log(data);
             return;
          }
-         console.log(data.status)
+         setUserId(data.id);
          setStatus(data.status)
          navigate(`/room/${roomId}`)
       })
@@ -41,6 +43,11 @@ export default function Room() {
 
       socket.on("end", (data: any) => {
          console.log("quiz is ended");
+         setStatus(data.status);
+      })
+
+      socket.on("leaderboard", (data: any) => {
+         setLeaderboard(data.leaderboard);
          setStatus(data.status);
       })
 
@@ -74,5 +81,12 @@ export default function Room() {
       </div>
    }
 
-   return <Quizes problem={problem} socket={socket} />
+   if (status === "leaderboard") {
+      return <div>
+         Learderbaord
+         {JSON.stringify(leaderboard)}
+      </div>
+   }
+
+   return <Quizes userId={userId} problem={problem} socket={socket} />
 }

@@ -8,7 +8,8 @@ export type Problem = {
    options: string[];
 }
 
-export default function Quizes({ problem, socket }: {
+export default function Quizes({ userId, problem, socket }: {
+   userId: string,
    problem: Problem,
    socket: Socket
 }) {
@@ -16,13 +17,16 @@ export default function Quizes({ problem, socket }: {
    const handleSubmit = () => {
       if (answer !== "") {
          socket.emit("Submit", {
+            userId,
+            roomId: problem.roomId,
+            problemId: problem.id,
             answer: Number(answer)
          })
       }
    }
 
    return <div>
-      <p>Room: {problem.id}</p>
+      <p>Room: {problem.roomId}</p>
       <p>Problem: {problem.title}</p>
       {JSON.stringify(problem.options)}
 

@@ -2,7 +2,6 @@ import { Server, Socket } from "socket.io";
 import { QuizManager, Status } from "./QuizManager";
 import { IoManager } from "./IoManager";
 
-
 export class UserManager {
    private quizManager;
 
@@ -40,19 +39,24 @@ export class UserManager {
          socket.on("start", ({ roomId }: {
             roomId: string,
          }) => {
-            this.quizManager.start(roomId);
+            const result = this.quizManager.start(roomId);
+            if (!result) {
+               this.quizManager.getLeaderboard(roomId);
+            }
          })
 
          socket.on("next", ({ roomId }: {
             roomId: string,
          }) => {
             this.quizManager.next(roomId);
+            this.quizManager.getLeaderboard(roomId);
          })
 
          socket.on("end", ({ roomId }: {
             roomId: string,
          }) => {
             this.quizManager.endQuiz(roomId);
+            this.quizManager.getLeaderboard(roomId);
          })
       })
 
@@ -68,6 +72,7 @@ export class UserManager {
             });
          } else {
             socket.emit("resultJoin", {
+               id: resultJoin.id,
                status: resultJoin.status,
                success: true
             });
@@ -77,8 +82,14 @@ export class UserManager {
          }
       })
 
-      socket.on("Submit", ({ answer }: { answer: string }) => {
-         console.log(answer);
+      socket.on("Submit", ({ userId, roomId, problemId, answer }:
+         {
+            userId: string,
+            roomId: string,
+            problemId: string,
+            answer: number,
+         }) => {
+         this.quizManager.submitAnswer(userId, roomId, problemId, answer);
       })
    }
 }

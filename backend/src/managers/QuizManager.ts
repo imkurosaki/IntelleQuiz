@@ -1,5 +1,5 @@
 import { Socket } from "socket.io";
-import { Quiz } from "../Quiz";
+import { Problem, Quiz } from "../Quiz";
 import { v4 as uuidv4 } from 'uuid';
 import { IoManager } from "./IoManager";
 
@@ -21,7 +21,11 @@ export interface Room {
 export interface User {
    id: string;
    username: string;
+   points: number;
 }
+
+// timer 10 seconds to answer the problems
+const TIMER_SEC = 10;
 
 export class QuizManager {
    public admin?: string;
@@ -71,11 +75,16 @@ export class QuizManager {
          return { error: `Quiz is ${room?.status}` }
       }
 
+      const id: string = uuidv4()
       room.users.push({
-         id: uuidv4(),
-         username: username || ""
+         id,
+         username: username || "",
+         points: 0
       })
-      return { status: room.status };
+      return {
+         id,
+         status: room.status
+      };
    }
 
    addQuiz(roomId: string, title: string, options: string[], answer: number) {
@@ -97,8 +106,21 @@ export class QuizManager {
       return room.quiz;
    }
 
-   answer() {
-
+   submitAnswer(userId: string, roomId: string, problemId: string, answer: number) {
+      const room = this.rooms.find((room: Room) => room.id === roomId)
+      if (!room) {
+         console.log("No room found")
+         return;
+      }
+      const problem = room.quiz.getQuiz().find((problem: Problem) => problem.id === problemId);
+      if (problem?.answer === answer) {
+         const user = room.users.find((user: User) => user.id === userId);
+         if (!user) {
+            console.log("User is not found");
+            return;
+         }
+         user.points += 10;
+      }
    }
 
    start(roomId: string) {
@@ -115,6 +137,12 @@ export class QuizManager {
          return {
             error: "You don't have a problem yet."
          }
+      }
+
+      if (room.status !== "waiting") {
+         return {
+            error: "You can't re-start the quiz"
+         };
       }
       console.log(problem)
       room.status = Status.Started;
@@ -156,5 +184,21 @@ export class QuizManager {
       IoManager.io.to(roomId).emit("end", {
          status: room.status
       });
+   }
+
+   getLeaderboard(roomId: string) {
+      const room = this.rooms.find((room: Room) => room.id === roomId)
+      if (!room) {
+         console.log("No room found")
+         return;
+      }
+
+      setTimeout(() => {
+         const leaderboard = room.users.sort((a, b) => a.points - b.points).reverse();
+         IoManager.io.to(roomId).emit("leaderboard", {
+            leaderboard,
+            status: "leaderboard",
+         });
+      }, TIMER_SEC * 1000)
    }
 }
