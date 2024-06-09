@@ -25,7 +25,8 @@ export interface User {
 }
 
 // timer 10 seconds to answer the problems
-const TIMER_SEC = 10;
+const MAX_TIME_SEC = 15;
+const MAXPOINTS = 1000;
 
 export class QuizManager {
    public admin?: string;
@@ -107,6 +108,7 @@ export class QuizManager {
    }
 
    submitAnswer(userId: string, roomId: string, problemId: string, answer: number) {
+      const endTime = new Date().getTime();
       const room = this.rooms.find((room: Room) => room.id === roomId)
       if (!room) {
          console.log("No room found")
@@ -119,8 +121,17 @@ export class QuizManager {
             console.log("User is not found");
             return;
          }
-         user.points += 10;
+         user.points += this.calculatePoints(room.quiz.startTime, endTime);
       }
+   }
+
+   calculatePoints(startTime: number, endTime: number) {
+      const durationInMinutes = endTime - startTime;
+      const durationInSeconds = durationInMinutes / 1000;
+      const points = durationInSeconds > MAX_TIME_SEC ? 0 :
+         MAXPOINTS * (1 - (durationInSeconds / MAX_TIME_SEC));
+
+      return Math.round(points);
    }
 
    start(roomId: string) {
@@ -146,6 +157,7 @@ export class QuizManager {
       }
       console.log(problem)
       room.status = Status.Started;
+      room.quiz.startTime = new Date().getTime();
       IoManager.io.to(roomId).emit("problem", {
          problem,
          status: room.status
@@ -167,6 +179,7 @@ export class QuizManager {
          }
       }
       room.status = Status.Ongoing;
+      room.quiz.startTime = new Date().getTime();
       IoManager.io.to(roomId).emit("problem", {
          problem,
          status: room.status
@@ -199,6 +212,6 @@ export class QuizManager {
             leaderboard,
             status: "leaderboard",
          });
-      }, TIMER_SEC * 1000)
+      }, MAX_TIME_SEC * 1000)
    }
 }

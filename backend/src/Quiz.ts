@@ -15,12 +15,14 @@ export interface User {
 export class Quiz {
    public roomId: string;
    private problems: Problem[];
+   public startTime: number;
    private currentProblem: number;
 
    constructor(roomId: string) {
       this.problems = [];
       this.roomId = roomId;
       this.currentProblem = 0;
+      this.startTime = 0;
    }
 
    addQuiz(roomId: string, title: string, options: string[], answer: number) {
