@@ -1,5 +1,6 @@
 import { RouterProvider, createBrowserRouter } from "react-router-dom"
 import Room from "./pages/Room"
+import { Toaster } from "sonner"
 
 const router = createBrowserRouter([
    {
@@ -15,7 +16,10 @@ const router = createBrowserRouter([
 ])
 
 function App() {
-   return <RouterProvider router={router} />
+   return <div>
+      <RouterProvider router={router} />
+      <Toaster />
+   </div>
 }
 
 export default App

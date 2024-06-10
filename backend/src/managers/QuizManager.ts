@@ -22,10 +22,11 @@ export interface User {
    id: string;
    username: string;
    points: number;
+   image: string;
 }
 
 // timer 10 seconds to answer the problems
-export const MAX_TIME_SEC = 15;
+export const MAX_TIME_SEC = 10;
 const MAXPOINTS = 1000;
 
 export class QuizManager {
@@ -75,7 +76,7 @@ export class QuizManager {
       console.log(this.admin);
    }
 
-   addUser(roomId: string, username?: string) {
+   addUser(roomId: string, username: string, socket: Socket) {
       const room = this.rooms.find((room: Room) => room.id === roomId);
       console.log(room?.status)
       if (!room) {
@@ -90,14 +91,22 @@ export class QuizManager {
          return { error: `Quiz is ${room?.status}` }
       }
 
+      // temporarily added this for avatar
+      const randomNumber = Math.floor(Math.random() * 7) + 1;
       const id: string = uuidv4()
       room.users.push({
          id,
          username: username || "",
-         points: 0
+         points: 0,
+         image: randomNumber.toString(),
       })
+      socket.join(roomId);
+      IoManager.io.to(roomId).emit("participants", {
+         participants: room.users
+      });
       return {
          id,
+         roomId: room.id,
          status: room.status
       };
    }

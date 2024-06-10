@@ -1,12 +1,16 @@
 
 
-export default function Input({ label, type, onChange }: {
-   label: string,
+export default function Input({ placeholder, type, onChange }: {
+   placeholder: string,
    type: string,
    onChange: any,
 }) {
    return <div>
-      <p>{label}</p>
-      <input type={type} onChange={onChange} />
+      <input
+         type={type}
+         placeholder={placeholder}
+         onChange={onChange}
+         className="py-3 px-4 border w-full border-gray-100 bg-gray-100 rounded-xl"
+      />
    </div>
 }

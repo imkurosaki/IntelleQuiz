@@ -93,13 +93,17 @@ export class UserManager {
             this.quizManager.endQuiz(roomId);
             this.quizManager.getLeaderboard(roomId);
          })
+
+         socket.on("desconnect", () => {
+            console.log("Admin is disconnected");
+         })
       })
 
       socket.on("JoinUser", ({ username, roomId }: {
          username: string;
          roomId: string;
       }) => {
-         const resultJoin = this.quizManager.addUser(roomId, username);
+         const resultJoin = this.quizManager.addUser(roomId, username, socket);
          if (resultJoin.error) {
             socket.emit("resultJoin", {
                error: resultJoin.error,
@@ -108,11 +112,12 @@ export class UserManager {
          } else {
             socket.emit("resultJoin", {
                id: resultJoin.id,
+               roomId: resultJoin.roomId,
                status: resultJoin.status,
                success: true
             });
             console.log("Succceessfully join")
-            socket.join(roomId);
+            // socket.join(roomId);
             // IoManager.io.to(roomId).emit("problem", resultJoin)
          }
       })
@@ -125,6 +130,10 @@ export class UserManager {
             answer: number,
          }) => {
          this.quizManager.submitAnswer(userId, roomId, problemId, answer);
+      })
+
+      socket.on("disconnect", () => {
+         console.log("User disconnected")
       })
    }
 }
