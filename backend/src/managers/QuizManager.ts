@@ -25,7 +25,7 @@ export interface User {
 }
 
 // timer 10 seconds to answer the problems
-const MAX_TIME_SEC = 15;
+export const MAX_TIME_SEC = 15;
 const MAXPOINTS = 1000;
 
 export class QuizManager {
@@ -34,6 +34,20 @@ export class QuizManager {
 
    constructor() {
       this.rooms = [];
+   }
+
+   findRoom(roomId: string) {
+      const room = this.rooms.find((room: any) => room.id === roomId);
+      if (!room) {
+         return {
+            room: null,
+            error: "Room doesn't exist"
+         };
+      }
+      return {
+         room,
+         error: null
+      };
    }
 
    addRoom(roomId: string, admin: string) {

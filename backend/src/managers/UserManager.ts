@@ -1,6 +1,7 @@
 import { Server, Socket } from "socket.io";
-import { QuizManager, Status } from "./QuizManager";
+import { MAX_TIME_SEC, QuizManager, Room, Status } from "./QuizManager";
 import { IoManager } from "./IoManager";
+import { Quiz } from "../Quiz";
 
 export class UserManager {
    private quizManager;
@@ -39,10 +40,44 @@ export class UserManager {
          socket.on("start", ({ roomId }: {
             roomId: string,
          }) => {
+            console.log("start quiz")
             const result = this.quizManager.start(roomId);
             if (!result) {
                this.quizManager.getLeaderboard(roomId);
             }
+         })
+
+         socket.on("start-automatically", async ({ roomId }: {
+            roomId: string,
+         }) => {
+            const SECONDS_DELAY = 10;
+            const { room, error }: {
+               room: Room | null,
+               error: string | null
+            } = this.quizManager.findRoom(roomId);
+
+            console.log("room" + room)
+
+            if (!room) {
+               console.log("error in start-automatically")
+               socket.emit("error", error);
+               return;
+            }
+            const noOfProblems: number = room?.quiz.getQuiz().length;
+            for (let i = 0; i < noOfProblems; i++) {
+               if (i === 0) {
+                  //begin the quiz
+                  this.quizManager.start(roomId);
+                  this.quizManager.getLeaderboard(roomId);
+               } else {
+                  this.quizManager.next(roomId);
+                  this.quizManager.getLeaderboard(roomId);
+               }
+               await new Promise(r => setTimeout(r, (MAX_TIME_SEC + SECONDS_DELAY) * 1000));
+            }
+            //end of the quiz
+            this.quizManager.endQuiz(roomId);
+            this.quizManager.getLeaderboard(roomId);
          })
 
          socket.on("next", ({ roomId }: {
