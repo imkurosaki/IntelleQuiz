@@ -154,7 +154,7 @@ export class QuizManager {
       const points = durationInSeconds > MAX_TIME_SEC ? 0 :
          MAXPOINTS * (1 - (durationInSeconds / MAX_TIME_SEC));
 
-      return Math.round(points);
+      return Math.round(points * 1000) / 1000;
    }
 
    start(roomId: string) {
