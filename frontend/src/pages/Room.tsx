@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom"
 import Button from "../components/Button";
-import { Socket, io } from 'socket.io-client';
+import { io } from 'socket.io-client';
 import Input from "../components/Input";
 import Quizes from "../components/Room/Quizes";
 import { toast } from "sonner";
 import WaitingPage, { Participant } from "../components/Room/WaitingPage";
+import Leaderboard from "../components/Room/Leaderboard";
 
 const socket = io("ws://localhost:3000");
 
@@ -31,6 +32,7 @@ export default function Room() {
       image: "",
       points: 0
    })
+   const [noOfProblems, setNoOfProblems] = useState("");
 
    useEffect(() => {
       socket.on("connect", () => { })
@@ -44,6 +46,7 @@ export default function Room() {
          }
          setUserId(data.id);
          setStatus(data.status)
+         setNoOfProblems(data.problems.length || 0)
          navigate(`/room/${data.roomId}`)
       })
 
@@ -116,13 +119,13 @@ export default function Room() {
          participants={participants.filter((participant: Participant) => {
             return participant.username !== username
          })}
+         noOfProblems={noOfProblems}
       />
    }
 
    if (status === "leaderboard") {
       return <div>
-         Learderbaord
-         {JSON.stringify(leaderboard)}
+         <Leaderboard leaderboard={leaderboard} />
       </div>
    }
 

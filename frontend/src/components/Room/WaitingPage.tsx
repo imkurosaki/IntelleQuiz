@@ -1,3 +1,4 @@
+import { getImageUrl } from "../../lib";
 
 export type Participant = {
    id: string;
@@ -6,19 +7,18 @@ export type Participant = {
    image: string
 }
 
-export default function WaitingPage({ participants, user }: {
+export default function WaitingPage({ participants, user, noOfProblems }: {
    user: Participant,
-   participants: Participant[]
+   participants: Participant[],
+   noOfProblems: string,
 }) {
-   const getImageUrl = (index: string) => {
-      return new URL(`../../assets/avatar${index}.png`, import.meta.url).href;
-   }
 
    return <div className="flex justify-center pt-20 pb-36">
       <div className="w-[650px]">
          <div className="text-center">
-            <div className="flex items-center justify-center">
+            <div className="flex flex-col gap-4 items-center justify-center">
                <img src={getImageUrl(user.image)} alt="" className="w-25 rounded-full" />
+               <p className="font-light text-xs">Question 1 of {noOfProblems}</p>
             </div>
             <div className="mt-6">
                <p className="text-lg font-medium">Get Ready to play <span className="capitalize font-semibold">{user.username}</span></p>

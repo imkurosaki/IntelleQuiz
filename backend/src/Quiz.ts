@@ -5,6 +5,7 @@ export interface Problem {
    title: string;
    options: string[];
    answer: number;
+   countdown: number;
 }
 
 export interface User {
@@ -25,13 +26,14 @@ export class Quiz {
       this.startTime = 0;
    }
 
-   addQuiz(roomId: string, title: string, options: string[], answer: number) {
+   addQuiz(roomId: string, title: string, options: string[], answer: number, countdown: number) {
       this.problems.push({
          roomId,
          title,
          id: uuid4(),
          options,
          answer,
+         countdown
       });
       console.log("success added problem: " + JSON.stringify(this.problems))
    }
@@ -47,6 +49,7 @@ export class Quiz {
          roomId: problem.roomId,
          title: problem.title,
          options: problem.options,
+         countdown: problem.countdown,
       }
    }
 
@@ -62,6 +65,7 @@ export class Quiz {
          roomId: problem.roomId,
          title: problem.title,
          options: problem.options,
+         countdown: problem.countdown,
       }
    }
 }

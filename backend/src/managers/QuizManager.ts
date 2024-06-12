@@ -27,7 +27,7 @@ export interface User {
 
 // timer 10 seconds to answer the problems
 export const MAX_TIME_SEC = 10;
-const MAXPOINTS = 1000;
+const MAXPOINTS = 200;
 
 export class QuizManager {
    public admin?: string;
@@ -107,18 +107,19 @@ export class QuizManager {
       return {
          id,
          roomId: room.id,
-         status: room.status
+         status: room.status,
+         problems: room.quiz.getQuiz()
       };
    }
 
-   addQuiz(roomId: string, title: string, options: string[], answer: number) {
+   addQuiz(roomId: string, title: string, options: string[], answer: number, countdown: number) {
       const room = this.rooms.find((room: Room) => room.id === roomId)
       if (!room) {
          console.log("No room found")
          return;
       }
       const quiz = room.quiz;
-      quiz.addQuiz(roomId, title, options, answer);
+      quiz.addQuiz(roomId, title, options, answer, countdown);
    }
 
    getQuiz(roomId: string) {
@@ -130,7 +131,7 @@ export class QuizManager {
       return room.quiz;
    }
 
-   submitAnswer(userId: string, roomId: string, problemId: string, answer: number) {
+   submitAnswer(userId: string, roomId: string, problemId: string, answer: number, countdown: number) {
       const endTime = new Date().getTime();
       const room = this.rooms.find((room: Room) => room.id === roomId)
       if (!room) {
@@ -144,15 +145,15 @@ export class QuizManager {
             console.log("User is not found");
             return;
          }
-         user.points += this.calculatePoints(room.quiz.startTime, endTime);
+         user.points += this.calculatePoints(room.quiz.startTime, endTime, countdown);
       }
    }
 
-   calculatePoints(startTime: number, endTime: number) {
+   calculatePoints(startTime: number, endTime: number, countdown: number) {
       const durationInMinutes = endTime - startTime;
       const durationInSeconds = durationInMinutes / 1000;
-      const points = durationInSeconds > MAX_TIME_SEC ? 0 :
-         MAXPOINTS * (1 - (durationInSeconds / MAX_TIME_SEC));
+      const points = durationInSeconds > countdown ? 0 :
+         MAXPOINTS * (1 - (durationInSeconds / countdown));
 
       return Math.round(points * 1000) / 1000;
    }
@@ -181,10 +182,12 @@ export class QuizManager {
       console.log(problem)
       room.status = Status.Started;
       room.quiz.startTime = new Date().getTime();
+
       IoManager.io.to(roomId).emit("problem", {
          problem,
          status: room.status
       });
+      return problem;
    }
 
    next(roomId: string) {
@@ -207,6 +210,7 @@ export class QuizManager {
          problem,
          status: room.status
       });
+      return problem;
    }
 
    endQuiz(roomId: string) {
@@ -222,7 +226,7 @@ export class QuizManager {
       });
    }
 
-   getLeaderboard(roomId: string) {
+   getLeaderboard(roomId: string, countdown: number) {
       const room = this.rooms.find((room: Room) => room.id === roomId)
       if (!room) {
          console.log("No room found")
@@ -235,6 +239,6 @@ export class QuizManager {
             leaderboard,
             status: "leaderboard",
          });
-      }, MAX_TIME_SEC * 1000)
+      }, countdown * 1000)
    }
 }
