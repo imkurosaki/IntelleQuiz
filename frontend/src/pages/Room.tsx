@@ -7,6 +7,7 @@ import Quizes from "../components/Room/Quizes";
 import { toast } from "sonner";
 import WaitingPage, { Participant } from "../components/Room/WaitingPage";
 import Leaderboard from "../components/Room/Leaderboard";
+import EndRoom from "../components/Room/EndRoom";
 
 const socket = io("ws://localhost:3000");
 
@@ -23,6 +24,7 @@ export default function Room() {
       roomId: "",
       title: "",
       options: [],
+      countdown: 0
    });
    const [userId, setUserId] = useState("");
    const [participants, setPartcipants] = useState([]);
@@ -59,6 +61,7 @@ export default function Room() {
       socket.on("end", (data: any) => {
          console.log("quiz is ended");
          setStatus(data.status);
+         setLeaderboard(data.leaderboard)
       })
 
       socket.on("leaderboard", (data: any) => {
@@ -99,9 +102,7 @@ export default function Room() {
    }
 
    if (status === "finished") {
-      return <div>
-         The quiz is finished
-      </div>
+      return <EndRoom leaderboard={leaderboard} socket={socket} roomId={roomId} />
    }
 
    if (status === "waiting") {

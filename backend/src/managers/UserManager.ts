@@ -82,7 +82,7 @@ export class UserManager {
             }
             //end of the quiz
             this.quizManager.endQuiz(roomId);
-            this.quizManager.getLeaderboard(roomId, COUNTDOWN_TIMER);
+            // this.quizManager.getLeaderboard(roomId, COUNTDOWN_TIMER);
          })
 
          socket.on("next", ({ roomId }: {
@@ -96,10 +96,10 @@ export class UserManager {
             roomId: string,
          }) => {
             const result: any = this.quizManager.endQuiz(roomId);
-            this.quizManager.getLeaderboard(roomId, result.countdown);
+            // this.quizManager.getLeaderboard(roomId, 0);
          })
 
-         socket.on("desconnect", () => {
+         socket.on("disconnect", () => {
             console.log("Admin is disconnected");
          })
       })
@@ -127,7 +127,15 @@ export class UserManager {
             // socket.join(roomId);
             // IoManager.io.to(roomId).emit("problem", resultJoin)
          }
+         socket.on("leaveRoom", ({ roomId }: {
+            roomId: string
+         }) => {
+            console.log("leave room " + roomId)
+            socket.leave(roomId)
+         })
+
       })
+
 
       socket.on("Submit", ({ userId, roomId, problemId, answer, countdown }:
          {

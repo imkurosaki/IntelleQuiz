@@ -8,7 +8,7 @@ export default function Leaderboard({ leaderboard }: {
 
    return <div className="w-full flex justify-center">
       <div className="mt-16">
-         <p className="text-5xl mb-16">Leaderboard Results</p>
+         <p className="text-5xl ps-28 mb-16">Leaderboard Results</p>
          <div className="flex flex-col gap-3">
             {leaderboard.map((participant: Participant, key: number) => {
                return <PointsUserCard key={key} id={participant.id} username={participant.username} points={participant.points} image={participant.image} />
@@ -21,7 +21,7 @@ export default function Leaderboard({ leaderboard }: {
 export function PointsUserCard({ id, username, points, image }:
    Participant
 ) {
-   return <div className="bounce-left flex w-full items-center gap-3">
+   return <div className="bounce-left flex items-center gap-3">
       <p className="font-semibold text-lg w-[100px] text-end">{Math.round(points)}<span className="text-xs">p</span></p>
       <div className="flex items-center gap-4">
          <div className={`h-12 ${widthStyle(points)} ${randomColor()} flex items-center justify-end rounded-r-full`}>

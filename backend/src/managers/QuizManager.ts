@@ -222,7 +222,8 @@ export class QuizManager {
 
       room.status = Status.Finished;
       IoManager.io.to(roomId).emit("end", {
-         status: room.status
+         status: room.status,
+         leaderboard: this.leaderboard(room),
       });
    }
 
@@ -234,11 +235,15 @@ export class QuizManager {
       }
 
       setTimeout(() => {
-         const leaderboard = room.users.sort((a, b) => a.points - b.points).reverse();
+         // const leaderboard = room.users.sort((a, b) => a.points - b.points).reverse();
          IoManager.io.to(roomId).emit("leaderboard", {
-            leaderboard,
+            leaderboard: this.leaderboard(room),
             status: "leaderboard",
          });
       }, countdown * 1000)
+   }
+
+   private leaderboard(room: Room) {
+      return room.users.sort((a, b) => a.points - b.points).reverse();
    }
 }
