@@ -2,6 +2,7 @@ import { Socket } from "socket.io";
 import { Problem, Quiz } from "../Quiz";
 import { v4 as uuidv4 } from 'uuid';
 import { IoManager } from "./IoManager";
+import { generateRandomString } from "../lib/randomStrings";
 
 export enum Status {
    Waiting = "waiting",
@@ -12,6 +13,7 @@ export enum Status {
 
 export interface Room {
    id: string;
+   name: string;
    admin: string;
    status: Status;
    quiz: Quiz;
@@ -51,20 +53,31 @@ export class QuizManager {
       };
    }
 
-   addRoom(roomId: string, admin: string) {
-      const room = this.rooms.find((room: any) => room.id === roomId && room.admin === admin);
+   addRoom(roomName: string, admin: string) {
+      const room = this.rooms.find((room: any) => room.roomName === roomName && room.admin === admin);
       if (room) {
-         console.log("room is already exist " + roomId);
-         return;
+         console.log("room is already exist " + roomName);
+         return {
+            error: true,
+            message: `${roomName} Room is already exist`,
+            roomId: ""
+         };
       }
+      const roomId: string = generateRandomString(15)
       this.rooms.push({
          id: roomId,
+         name: roomName,
          admin,
          status: Status.Waiting,
          quiz: new Quiz(roomId),
          users: [],
       })
       console.log("successfully added room " + this.rooms)
+      return {
+         error: false,
+         message: "Room is successfully added",
+         roomId
+      };
    }
 
    addAdmin(username: string) {
@@ -116,10 +129,17 @@ export class QuizManager {
       const room = this.rooms.find((room: Room) => room.id === roomId)
       if (!room) {
          console.log("No room found")
-         return;
+         return {
+            error: true,
+            message: "No room found"
+         };
       }
       const quiz = room.quiz;
       quiz.addQuiz(roomId, title, options, answer, countdown);
+      return {
+         error: false,
+         message: "Problem added successfully"
+      }
    }
 
    getQuiz(roomId: string) {
@@ -163,20 +183,28 @@ export class QuizManager {
       const room = this.rooms.find((room: Room) => room.id === roomId)
       if (!room) {
          console.log("No room found")
-         return;
+         return {
+            error: true,
+            message: "No room found",
+            countdown: 0
+         };
       }
 
       const problem = room.quiz.start();
       if (!problem) {
          console.log("You don't have a problem yet.")
          return {
-            error: "You don't have a problem yet."
+            error: true,
+            message: "You don't have a problem yet.",
+            countdown: 0
          }
       }
 
       if (room.status !== "waiting") {
          return {
-            error: "You can't re-start the quiz"
+            error: true,
+            message: "You can't re-start the quiz",
+            countdown: 0
          };
       }
       console.log(problem)
@@ -187,37 +215,53 @@ export class QuizManager {
          problem,
          status: room.status
       });
-      return problem;
+      return {
+         error: false,
+         message: "The quiz is started by the admin",
+         countdown: problem.countdown
+      }
    }
 
    next(roomId: string) {
       const room = this.rooms.find((room: Room) => room.id === roomId)
       if (!room) {
          console.log("No room found")
-         return;
+         return {
+            error: true,
+            message: "No room found",
+            countdown: 0
+         };
       }
 
-      const problem = room.quiz.next();
-      if (!problem) {
-         console.log("You don't have a problem yet.")
+      const result: any = room.quiz.next();
+      if (result.error) {
          return {
-            error: "You don't have a problem yet."
+            error: true,
+            message: "There's no problems left.",
+            countdown: 0
          }
       }
       room.status = Status.Ongoing;
       room.quiz.startTime = new Date().getTime();
       IoManager.io.to(roomId).emit("problem", {
-         problem,
+         result,
          status: room.status
       });
-      return problem;
+      return {
+         error: false,
+         message: "",
+         countdown: result.problem.countdown
+      };
    }
 
    endQuiz(roomId: string) {
       const room = this.rooms.find((room: Room) => room.id === roomId)
       if (!room) {
          console.log("No room found")
-         return;
+         return {
+            error: true,
+            message: "No room found"
+         };
       }
 
       room.status = Status.Finished;
@@ -225,6 +269,10 @@ export class QuizManager {
          status: room.status,
          leaderboard: this.leaderboard(room),
       });
+      return {
+         error: false,
+         message: "Room is end"
+      }
    }
 
    getLeaderboard(roomId: string, countdown: number) {

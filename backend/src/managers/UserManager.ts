@@ -1,7 +1,7 @@
 import { Server, Socket } from "socket.io";
 import { MAX_TIME_SEC, QuizManager, Room, Status } from "./QuizManager";
 import { IoManager } from "./IoManager";
-import { Quiz } from "../Quiz";
+import { Problem, Quiz } from "../Quiz";
 
 export class UserManager {
    private quizManager;
@@ -13,14 +13,36 @@ export class UserManager {
    addUser(socket: Socket) {
       console.log("connected")
       socket.on("Admin", ({ username }: { username: string }) => {
+         if (!username) {
+            socket.emit("error", {
+               error: "Please enter username"
+            })
+            return;
+         }
          this.quizManager.addAdmin(username)
 
-         socket.on("addRoom", ({ roomId }: { roomId: string }) => {
+         socket.on("addRoom", ({ roomName }: { roomName: string }) => {
             const username = this.quizManager.admin;
             if (!username) {
                return
             }
-            this.quizManager.addRoom(roomId, username);
+            const room: {
+               error: boolean,
+               message: string
+               roomId: string
+            } = this.quizManager.addRoom(roomName, username);
+
+            if (room.error) {
+               socket.emit("error", {
+                  error: room.error
+               })
+               return;
+            }
+            console.log("room added")
+            socket.emit("room", {
+               message: room.message,
+               roomId: room.roomId
+            })
          })
 
          socket.on("addQuiz", ({ roomId, title, options, answer, countdown }: {
@@ -30,7 +52,19 @@ export class UserManager {
             answer: number,
             countdown: number,
          }) => {
-            this.quizManager.addQuiz(roomId, title, options, answer, countdown)
+            const result: {
+               error: boolean,
+               message: string
+            } = this.quizManager.addQuiz(roomId, title, options, answer, countdown)
+            if (result.error) {
+               socket.emit("error", {
+                  error: result.message
+               })
+            } else {
+               socket.emit("success", {
+                  error: result.message
+               })
+            }
          })
 
          socket.on("getQuiz", ({ roomId }: { roomId: string }) => {
@@ -42,8 +76,20 @@ export class UserManager {
             roomId: string,
          }) => {
             console.log("start quiz")
-            const result: any = this.quizManager.start(roomId);
-            if (!result.error) {
+            const result: {
+               error: boolean,
+               message: string,
+               countdown: number
+            } = this.quizManager.start(roomId);
+
+            if (result.error) {
+               socket.emit("error", {
+                  error: result.message
+               })
+            } else {
+               socket.emit("success", {
+                  message: result.message
+               })
                this.quizManager.getLeaderboard(roomId, result.countdown);
             }
          })
@@ -71,7 +117,6 @@ export class UserManager {
                   //begin the quiz
                   const result: any = this.quizManager.start(roomId);
                   COUNTDOWN_TIMER = result.countdown;
-                  // this.quizManager.start(roomId);
                   this.quizManager.getLeaderboard(roomId, result.countdown);
                } else {
                   const result: any = this.quizManager.next(roomId);
@@ -82,20 +127,38 @@ export class UserManager {
             }
             //end of the quiz
             this.quizManager.endQuiz(roomId);
-            // this.quizManager.getLeaderboard(roomId, COUNTDOWN_TIMER);
          })
 
          socket.on("next", ({ roomId }: {
             roomId: string,
          }) => {
-            const result: any = this.quizManager.next(roomId);
-            this.quizManager.getLeaderboard(roomId, result.countdown);
+            const result: {
+               error: boolean,
+               message: string,
+               countdown: number
+            } = this.quizManager.next(roomId);
+            if (result.error) {
+               socket.emit("error", {
+                  error: result.message
+               })
+            } else {
+               this.quizManager.getLeaderboard(roomId, result.countdown);
+            }
          })
 
          socket.on("end", ({ roomId }: {
             roomId: string,
          }) => {
-            const result: any = this.quizManager.endQuiz(roomId);
+            const result: {
+               error: boolean,
+               message: string
+            } = this.quizManager.endQuiz(roomId);
+
+            if (result.error) {
+               socket.emit("error", {
+                  error: result.message
+               })
+            }
             // this.quizManager.getLeaderboard(roomId, 0);
          })
 

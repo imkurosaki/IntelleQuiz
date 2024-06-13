@@ -57,15 +57,21 @@ export class Quiz {
       this.currentProblem++;
       if (this.problems.length === this.currentProblem) {
          this.currentProblem--;
-         return this.problems[this.currentProblem];
+         // return this.problems[this.currentProblem];
+         return {
+            error: true
+         }
       }
       const problem = this.problems[this.currentProblem];
       return {
-         id: problem.id,
-         roomId: problem.roomId,
-         title: problem.title,
-         options: problem.options,
-         countdown: problem.countdown,
+         error: false,
+         problem: {
+            id: problem.id,
+            roomId: problem.roomId,
+            title: problem.title,
+            options: problem.options,
+            countdown: problem.countdown,
+         }
       }
    }
 }
