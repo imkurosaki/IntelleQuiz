@@ -34,7 +34,7 @@ export class UserManager {
 
             if (room.error) {
                socket.emit("error", {
-                  error: room.error
+                  error: room.message
                })
                return;
             }

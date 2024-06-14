@@ -10,7 +10,7 @@ export default function Input({ placeholder, type, onChange }: {
          type={type}
          placeholder={placeholder}
          onChange={onChange}
-         className="py-3 px-4 border w-full border-gray-100 bg-gray-100 rounded-xl"
+         className="py-3 px-4 border w-full border-gray-200 bg-gray-100 rounded-xl"
       />
    </div>
 }

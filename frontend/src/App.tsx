@@ -1,7 +1,10 @@
 import { RouterProvider, createBrowserRouter } from "react-router-dom"
 import Room from "./pages/Room"
 import { Toaster } from "sonner"
-import Admin from "./pages/Admin"
+import Register from "./pages/admin/Register"
+import AddRoom from "./pages/admin/AddRoom"
+import AddProblem from "./pages/admin/AddProblem"
+import { RecoilRoot } from "recoil"
 
 const router = createBrowserRouter([
    {
@@ -9,28 +12,37 @@ const router = createBrowserRouter([
       element: <Room />,
       children: [
          {
-            path: "/room/:roomIdParams",
+            path: ":roomIdParams",
             element: <Room />
-         },
+         }
       ]
    },
    {
       path: "/admin",
-      element: <Admin />,
       children: [
          {
-            path: "/admin/:roomIdParams",
-            element: <Admin />
+            path: "register", // Change to "/register"
+            element: <Register />
          },
+         {
+            path: "room",
+            element: <AddRoom />
+         },
+         {
+            path: "room/:roomIdParams",
+            element: <AddProblem />
+         }
       ]
    }
 ])
 
 function App() {
-   return <div>
-      <RouterProvider router={router} />
-      <Toaster />
-   </div>
+   return (
+      <RecoilRoot>
+         <RouterProvider router={router} />
+         <Toaster />
+      </RecoilRoot>
+   )
 }
 
 export default App

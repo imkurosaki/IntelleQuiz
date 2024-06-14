@@ -1,15 +1,17 @@
+import { ReactNode } from "react"
 
 
-export default function Button({ label, onClick, disabled }: {
-   label: string,
-   onClick: any
+export default function Button({ children, onClick, className, disabled }: {
+   children: ReactNode,
+   onClick: any,
+   className?: string,
    disabled?: boolean
 }) {
    return <button
       onClick={onClick}
-      className={`${!disabled ? "bg-gray-950 hover:bg-gray-900" : "bg-gray-300"} w-full py-4  text-white rounded-full `}
       disabled={disabled ?? false}
+      className={`${!disabled ? "bg-gray-950 hover:bg-gray-900" : "bg-gray-300"} ${className}`}
    >
-      {label}
+      {children}
    </button>
 }

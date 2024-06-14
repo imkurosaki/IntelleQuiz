@@ -54,7 +54,7 @@ export class QuizManager {
    }
 
    addRoom(roomName: string, admin: string) {
-      const room = this.rooms.find((room: any) => room.roomName === roomName && room.admin === admin);
+      const room = this.rooms.find((room: Room) => room.name === roomName && room.admin === admin);
       if (room) {
          console.log("room is already exist " + roomName);
          return {

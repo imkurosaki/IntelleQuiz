@@ -10,7 +10,7 @@ export type Participant = {
 export default function WaitingPage({ participants, user, noOfProblems }: {
    user: Participant,
    participants: Participant[],
-   noOfProblems: string,
+   noOfProblems: number,
 }) {
 
    return <div className="flex justify-center pt-20 pb-36">

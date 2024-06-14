@@ -1,21 +1,21 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom"
 import Button from "../components/Button";
-import { io } from 'socket.io-client';
 import Input from "../components/Input";
 import Quizes from "../components/Room/Quizes";
 import { toast } from "sonner";
 import WaitingPage, { Participant } from "../components/Room/WaitingPage";
 import Leaderboard from "../components/Room/Leaderboard";
 import EndRoom from "../components/Room/EndRoom";
-
-const socket = io("ws://localhost:3000");
+import { useSocket } from "../lib/hooks";
+import { Socket } from "socket.io-client";
+import { ParticipantInfo, participantInfo } from "../store/participant";
+import { useRecoilState } from "recoil";
 
 export default function Room() {
    const { roomIdParams } = useParams();
    const [username, setUsername] = useState("");
    const [roomId, setRoomId] = useState("");
-   // const socket = io("ws://localhost:3000");
    const navigate = useNavigate();
    const [status, setStatus] = useState("")
    const [leaderboard, setLeaderboard] = useState([]);
@@ -34,21 +34,23 @@ export default function Room() {
       image: "",
       points: 0
    })
-   const [noOfProblems, setNoOfProblems] = useState("");
+   const [noOfProblems, setNoOfProblems] = useState(0);
+   const socket: Socket = useSocket();
+   const [participantInfoAtom, setParticipantAtom] = useRecoilState(participantInfo);
 
    useEffect(() => {
-      socket.on("connect", () => { })
-
-      socket.on("resultJoin", (data: any) => {
+      socket.on("resultJoin", (data: ParticipantInfo) => {
          console.log(data);
          if (!data.success) {
             console.log(data);
             toast.error(data.error);
             return;
          }
+         setParticipantAtom(data);
+
          setUserId(data.id);
          setStatus(data.status)
-         setNoOfProblems(data.problems.length || 0)
+         setNoOfProblems(data.problems.length || 0);
          navigate(`/room/${data.roomId}`)
       })
 
@@ -73,8 +75,10 @@ export default function Room() {
          setPartcipants(data.participants);
       })
 
-      return () => { socket.off("connect") }
-   }, [])
+      return () => {
+         socket.off("resultJoin")
+      }
+   }, [socket, navigate, setParticipantAtom]);
 
    const handleClick = () => {
       socket.emit("JoinUser", {
@@ -95,7 +99,12 @@ export default function Room() {
                <Input placeholder="Your name" type="text" onChange={(e: any) => setUsername(e.target.value)} />
             </div>
             <div className="px-10 mt-8">
-               <Button label="Join" onClick={handleClick} />
+               <Button
+                  onClick={handleClick}
+                  className="py-4 w-full text-white rounded-full border-2 border-gray-200"
+               >
+                  Join
+               </Button>
             </div>
          </div>
       </div>
@@ -114,6 +123,8 @@ export default function Room() {
             }
          })
       }
+
+      console.log("participasnts " + JSON.stringify(participantInfoAtom));
 
       return <WaitingPage
          user={userInfo}
