@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { ErrorIcons } from "./Register";
 import { useSocket } from "../../lib/hooks";
 import { Socket } from "socket.io-client";
+import { AdminInfo, adminInfo } from "../../store";
+import { useRecoilState } from "recoil";
 
 export default function AddRoom() {
    const [disable, setDisable] = useState(true);
@@ -14,6 +16,7 @@ export default function AddRoom() {
    const [roomName, setRoomName] = useState("");
    const navigate = useNavigate();
    const socket: Socket = useSocket();
+   const [adminInfoAtom, setAdminInfoAtom] = useRecoilState<AdminInfo>(adminInfo);
 
    const submitHandler = () => {
       if (!roomName) {
@@ -48,6 +51,10 @@ export default function AddRoom() {
             duration: 5000
          });
          setRoomId(roomId)
+         setAdminInfoAtom({
+            username: adminInfoAtom.username,
+            currentRoom: roomId
+         })
       })
 
       return () => {

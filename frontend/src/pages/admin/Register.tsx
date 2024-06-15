@@ -27,7 +27,10 @@ export default function Register() {
       socket.emit("Admin", {
          username
       });
-      setAdminInfo({ username });
+      setAdminInfo({
+         username,
+         currentRoom: ''
+      });
       navigate("/admin/room");
    }
 
