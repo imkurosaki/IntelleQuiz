@@ -44,13 +44,7 @@ export class Quiz {
 
    start() {
       const problem = this.problems[this.currentProblem];
-      return {
-         id: problem.id,
-         roomId: problem.roomId,
-         title: problem.title,
-         options: problem.options,
-         countdown: problem.countdown,
-      }
+      return problem;
    }
 
    next() {
@@ -65,13 +59,8 @@ export class Quiz {
       const problem = this.problems[this.currentProblem];
       return {
          error: false,
-         problem: {
-            id: problem.id,
-            roomId: problem.roomId,
-            title: problem.title,
-            options: problem.options,
-            countdown: problem.countdown,
-         }
+         problem,
+         index: this.currentProblem
       }
    }
 }

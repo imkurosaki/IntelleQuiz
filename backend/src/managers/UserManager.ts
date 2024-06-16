@@ -62,7 +62,7 @@ export class UserManager {
                })
             } else {
                socket.emit("success", {
-                  error: result.message
+                  message: result.message
                })
             }
          })
@@ -76,11 +76,15 @@ export class UserManager {
             roomId: string,
          }) => {
             console.log("start quiz")
+
+            // join the admin roomId
+            socket.join(roomId);
             const result: {
                error: boolean,
                message: string,
                countdown: number
             } = this.quizManager.start(roomId);
+
 
             if (result.error) {
                socket.emit("error", {
@@ -111,6 +115,12 @@ export class UserManager {
                socket.emit("error", error);
                return;
             }
+
+            // join the admin roomId
+            socket.join(roomId);
+            socket.emit("operation", {
+               operation: "start-automatically"
+            })
             const noOfProblems: number = room?.quiz.getQuiz().length;
             for (let i = 0; i < noOfProblems; i++) {
                if (i === 0) {

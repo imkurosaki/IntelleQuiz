@@ -2,14 +2,20 @@ import { atom } from "recoil";
 
 export interface AdminInfo {
    username: string,
-   currentRoom: string
+   currentRoom: {
+      id: string,
+      noOfProblems: number
+   }
 }
 
 const adminInfo = atom({
    key: 'adminInfo',
    default: {
       username: "",
-      currentRoom: "",
+      currentRoom: {
+         id: "",
+         noOfProblems: 0,
+      },
    },
 })
 

@@ -9,6 +9,7 @@ import { useSocket } from "../../lib/hooks";
 import { Socket } from "socket.io-client";
 import { AdminInfo, adminInfo } from "../../store";
 import { useRecoilState } from "recoil";
+import Modal from "../../components/Modal";
 
 export default function AddRoom() {
    const [disable, setDisable] = useState(true);
@@ -53,7 +54,10 @@ export default function AddRoom() {
          setRoomId(roomId)
          setAdminInfoAtom({
             username: adminInfoAtom.username,
-            currentRoom: roomId
+            currentRoom: {
+               id: roomId,
+               noOfProblems: 0
+            }
          })
       })
 

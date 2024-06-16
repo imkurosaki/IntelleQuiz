@@ -29,7 +29,10 @@ export default function Register() {
       });
       setAdminInfo({
          username,
-         currentRoom: ''
+         currentRoom: {
+            id: '',
+            noOfProblems: 0
+         }
       });
       navigate("/admin/room");
    }

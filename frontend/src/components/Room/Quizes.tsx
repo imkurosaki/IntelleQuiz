@@ -64,7 +64,13 @@ export default function Quizes({ userId, problem, socket }: {
                </label>
             })}
             <div className="w-72 mt-4">
-               <Button label={disabled ? "Submitted" : "Submit"} onClick={handleSubmit} disabled={disabled} />
+               <Button
+                  onClick={handleSubmit}
+                  disabled={disabled}
+                  className="py-4 w-full text-white rounded-full border-2 border-gray-200"
+               >
+                  {disabled ? "Submitted" : "Submit"}
+               </Button>
             </div>
          </form>
          <div className="absolute right-0 bottom-0">

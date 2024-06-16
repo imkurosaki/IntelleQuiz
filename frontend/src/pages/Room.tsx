@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom"
 import Button from "../components/Button";
 import Input from "../components/Input";
-import Quizes from "../components/Room/Quizes";
+import Quizes, { Problem } from "../components/Room/Quizes";
 import { toast } from "sonner";
 import WaitingPage, { Participant } from "../components/Room/WaitingPage";
 import Leaderboard from "../components/Room/Leaderboard";
@@ -19,7 +19,7 @@ export default function Room() {
    const navigate = useNavigate();
    const [status, setStatus] = useState("")
    const [leaderboard, setLeaderboard] = useState([]);
-   const [problem, setProblem] = useState({
+   const [problem, setProblem] = useState<Problem>({
       id: "",
       roomId: "",
       title: "",
@@ -54,10 +54,13 @@ export default function Room() {
          navigate(`/room/${data.roomId}`)
       })
 
-      socket.on("problem", (data: any) => {
-         console.log(data)
-         setProblem(data.problem);
-         setStatus(data.status);
+      socket.on("problem", ({ problem, status }: {
+         problem: Problem,
+         status: string,
+      }) => {
+         console.log(problem)
+         setProblem(problem);
+         setStatus(status);
       })
 
       socket.on("end", (data: any) => {

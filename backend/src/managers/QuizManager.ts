@@ -212,9 +212,21 @@ export class QuizManager {
       room.quiz.startTime = new Date().getTime();
 
       IoManager.io.to(roomId).emit("problem", {
-         problem,
+         problem: {
+            id: problem.id,
+            roomId: problem.roomId,
+            title: problem.title,
+            options: problem.options,
+            countdown: problem.countdown,
+         },
          status: room.status
       });
+      console.log("kean started")
+      IoManager.io.to(roomId).emit("adminProblem", {
+         problem,
+         index: 0,
+         status: room.status
+      })
       return {
          error: false,
          message: "The quiz is started by the admin",
@@ -233,8 +245,8 @@ export class QuizManager {
          };
       }
 
-      const result: any = room.quiz.next();
-      if (result.error) {
+      const { error, problem, index }: any = room.quiz.next();
+      if (error) {
          return {
             error: true,
             message: "There's no problems left.",
@@ -244,13 +256,24 @@ export class QuizManager {
       room.status = Status.Ongoing;
       room.quiz.startTime = new Date().getTime();
       IoManager.io.to(roomId).emit("problem", {
-         result,
+         problem: {
+            id: problem.id,
+            roomId: problem.roomId,
+            title: problem.title,
+            options: problem.options,
+            countdown: problem.countdown,
+         },
          status: room.status
       });
+      IoManager.io.to(roomId).emit("adminProblem", {
+         problem,
+         index,
+         status: room.status
+      })
       return {
          error: false,
          message: "",
-         countdown: result.problem.countdown
+         countdown: problem.countdown
       };
    }
 
