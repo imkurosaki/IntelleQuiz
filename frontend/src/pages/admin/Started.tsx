@@ -5,9 +5,11 @@ import { CountdownCircle } from "../../components/CountdownCircle";
 import Button from "../../components/Button";
 import { Participant } from "../../components/Room/WaitingPage";
 import Leaderboard from "../../components/Room/Leaderboard";
-import { useRecoilValue } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 import { AdminInfo, adminInfo } from "../../store";
 import Modal from "../../components/Modal";
+import { useNavigate } from "react-router-dom";
+import EndRoom from "../../components/Room/EndRoom";
 
 export type AdminProblem = {
    roomId: string;
@@ -31,14 +33,24 @@ export default function Started() {
    const [operation, setOperation] = useState<string>("manually");
    const [status, setStatus] = useState("")
    const [leaderboard, setLeaderBoards] = useState<Participant[]>([])
-   const adminInfoAtom = useRecoilValue<AdminInfo>(adminInfo);
+   const [adminInfoAtom, setAdminInfoAtom] = useRecoilState<AdminInfo>(adminInfo);
    const [modal, setModal] = useState(true);
    const [isModalOpen, setModalOpen] = useState(false);
+   const navigate = useNavigate();
    const setIsModalOpen = () => {
       setModalOpen(false)
    }
 
    useEffect(() => {
+      console.log("started log")
+      if (!adminInfoAtom.username) {
+         navigate('admin/register');
+      }
+
+      if (!adminInfoAtom.currentRoom.id) {
+         navigate('admin/room');
+      }
+
       socket.on("adminProblem", ({ problem, status, index }: {
          problem: AdminProblem,
          status: string,
@@ -67,12 +79,21 @@ export default function Started() {
          setLeaderBoards(leaderboard);
       })
 
+      socket.on("end", ({ status, leaderboard }: {
+         status: string,
+         leaderboard: Participant[],
+      }) => {
+         console.log("quiz is end")
+         setStatus(status);
+         setLeaderBoards(leaderboard);
+      })
+
       return () => {
          socket.off("adminProblem");
          socket.off("operation")
          socket.off("leaderboard")
       }
-   }, [socket, adminInfoAtom])
+   }, [socket, adminInfoAtom, navigate])
 
 
    if (status === "leaderboard") {
@@ -109,6 +130,51 @@ export default function Started() {
       </div>
    }
 
+   if (status === "finished") {
+      return <div>
+         <EndRoom leaderboard={leaderboard} />
+         <div className="flex gap-4 flex-col items-center mt-20">
+            <p className="text-sm">The quiz is over, want to add more quiz?</p>
+            <div className="flex gap-4">
+               <button className="bg-gray-100 hover:bg-gray-50 border border-gray-900 px-8 py-3 text-black rounded-md"
+                  onClick={() => {
+                     socket.emit("leaveRoom", {
+                        roomId: adminInfoAtom.currentRoom.id
+                     })
+                     setAdminInfoAtom({
+                        username: "",
+                        currentRoom: {
+                           id: "",
+                           noOfProblems: 0,
+                        }
+                     })
+                     navigate("/admin/register")
+                  }}
+               >
+                  Logout
+               </button>
+               <Button className="bg-gray-900 hover:bg-gray-800 px-8 py-3 text-white rounded-md"
+                  onClick={() => {
+                     socket.emit("leaveRoom", {
+                        roomId: adminInfoAtom.currentRoom.id
+                     })
+                     setAdminInfoAtom({
+                        username: adminInfoAtom.username,
+                        currentRoom: {
+                           id: "",
+                           noOfProblems: 0,
+                        }
+                     })
+                     navigate("/admin/room")
+                  }}
+               >
+                  Yes, please
+               </Button>
+            </div>
+         </div>
+      </div>
+   }
+
    return <div className="flex justify-center">
       <div className="w-[700px] py-16 pb-8 relative">
          <div>
@@ -117,7 +183,7 @@ export default function Started() {
          </div>
 
          <div className="flex flex-col gap-4 mt-12">
-            {problem.options.map((option: string, key: any) => {
+            {problem.options.map((option: string, key: number) => {
                return <label key={key} className={`${key === problem.answer ? "border-indigo-300 text-indigo-900 bg-indigo-100 hover:bg-indigo-100" : ""} px-4 py-5 flex gap-5 border border-gray-200 rounded-xl`}>
                   <input type="radio" value={key.toString()}
                      name="answer"
@@ -133,7 +199,6 @@ export default function Started() {
             <CountdownCircle countdown={problem.countdown} />
             <p className={`${(operation === "start-automatically") ? "block" : "hidden"} text-sm`}>This quiz is start automatically.</p>
          </div>
-         <p>{adminInfoAtom.currentRoom.noOfProblems}</p>
       </div>
    </div>
 }

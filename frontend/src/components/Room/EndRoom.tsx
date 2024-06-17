@@ -3,12 +3,9 @@ import { PointsUserCard } from "./Leaderboard"
 import { Participant } from "./WaitingPage"
 import { Socket } from "socket.io-client"
 
-export default function EndRoom({ leaderboard, socket, roomId }: {
-   socket: Socket,
+export default function EndRoom({ leaderboard }: {
    leaderboard: Participant[],
-   roomId: string,
 }) {
-   const navigate = useNavigate();
 
    return <div className="flex justify-center pt-16">
       <div>
@@ -27,16 +24,6 @@ export default function EndRoom({ leaderboard, socket, roomId }: {
                      : <p></p>}
                </div>
             })}
-         </div>
-         <div className="flex justify-end mt-20">
-            <button className="bg-gray-900 hover:bg-gray-800 px-8 py-3 text-white rounded-md"
-               onClick={() => {
-                  socket.emit("leaveRoom", {
-                     roomId
-                  })
-                  navigate("/room")
-               }}
-            >Exit</button>
          </div>
       </div>
    </div>
