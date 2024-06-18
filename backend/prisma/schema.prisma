@@ -1,0 +1,81 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+   provider = "prisma-client-js"
+}
+
+datasource db {
+   provider = "postgresql"
+   url      = env("DATABASE_URL")
+}
+
+model Participant {
+   id        String   @id @default(uuid())
+   username  String   @unique
+   createdAt DateTime @default(now())
+   updatedAt DateTime @updatedAt
+
+   room   Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
+   roomId String
+}
+
+model Admin {
+   id        String   @id @default(uuid())
+   username  String   @unique
+   createdAt DateTime @default(now())
+   updatedAt DateTime @updatedAt
+
+   rooms Room[]
+}
+
+model Room {
+   id        String   @id @default(uuid())
+   name      String   @unique
+   status    Status   @default(WAITING)
+   admin     Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
+   adminId   String
+   createdAt DateTime @default(now())
+   updatedAt DateTime @updatedAt
+
+   quizes       Quiz[]
+   participants Participant[]
+}
+
+model Quiz {
+   id        String    @id @default(uuid())
+   startTime DateTime
+   problems  Problem[]
+
+   room   Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
+   roomId String
+}
+
+model Problem {
+   id        String   @id @default(uuid())
+   title     String   @db.Text
+   options   Option[]
+   answer    Int
+   countdown Int      @default(10) //countdown default by 10 sec
+
+   quiz   Quiz   @relation(fields: [quizId], references: [id], onDelete: Cascade)
+   quizId String
+}
+
+model Option {
+   id     String @id @default(uuid())
+   choice String @db.Text
+
+   problem   Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+   problemId String
+}
+
+enum Status {
+   WAITING
+   STARTED
+   ONGOING
+   FINISHED
+}

@@ -2,6 +2,7 @@ import { Server, Socket } from "socket.io";
 import { MAX_TIME_SEC, QuizManager, Room, Status } from "./QuizManager";
 import { IoManager } from "./IoManager";
 import { Problem, Quiz } from "../Quiz";
+import prisma from "../db";
 
 export class UserManager {
    private quizManager;
@@ -12,7 +13,13 @@ export class UserManager {
 
    addUser(socket: Socket) {
       console.log("connected")
-      socket.on("Admin", ({ username }: { username: string }) => {
+      socket.on("Admin", async ({ username }: { username: string }) => {
+         const result = await prisma.admin.create({
+            data: {
+               username,
+            }
+         })
+         console.log(result)
          if (!username) {
             socket.emit("error", {
                error: "Please enter username"
