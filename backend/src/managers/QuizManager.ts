@@ -120,6 +120,7 @@ export class QuizManager {
       return {
          id,
          roomId: room.id,
+         image: randomNumber,
          status: room.status,
          problems: room.quiz.getQuiz()
       };

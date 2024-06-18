@@ -7,9 +7,10 @@ import { toast } from "sonner";
 import { ErrorIcons } from "./Register";
 import { useSocket } from "../../lib/hooks";
 import { Socket } from "socket.io-client";
-import { AdminInfo, adminInfo } from "../../store";
+import { AdminInfo, adminInfo } from "../../store/admin.ts";
 import { useRecoilState } from "recoil";
 import Modal from "../../components/Modal";
+import { adminAddRoomInput } from "../../zod/adminValidation.ts";
 
 export default function AddRoom() {
    const [disable, setDisable] = useState(true);
@@ -18,8 +19,21 @@ export default function AddRoom() {
    const navigate = useNavigate();
    const socket: Socket = useSocket();
    const [adminInfoAtom, setAdminInfoAtom] = useRecoilState<AdminInfo>(adminInfo);
+   const [error, setError] = useState("");
 
    const submitHandler = () => {
+      const validation: any = adminAddRoomInput.safeParse({ roomName });
+      console.log(validation)
+      if (!validation.success) {
+         const errors: any = JSON.parse(validation.error.message);
+         setError(errors[0].message);
+
+         setTimeout(() => {
+            setError("")
+         }, 3000)
+         return;
+      }
+
       if (!roomName) {
          toast("Please enter a roomName", {
             className: "bg-gray-950 text-white",
@@ -71,6 +85,7 @@ export default function AddRoom() {
       <div className="w-[500px] border border-gray-200 shadow-md px-10 py-14 rounded-lg">
          <div>
             <p className="mb-4">Room Name</p>
+            <div className={`${error !== "" ? "block vibrate" : "hidden"} border border-gray-400 rounded-lg text-center py-3 px-2 my-4 bg-red-700 text-sm text-white w-full shadow-lg`}>{error}</div>
             <Input
                type="text"
                placeholder="Enter room name"

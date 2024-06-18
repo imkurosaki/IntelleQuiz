@@ -193,6 +193,7 @@ export class UserManager {
                id: resultJoin.id,
                roomId: resultJoin.roomId,
                status: resultJoin.status,
+               image: resultJoin.image,
                problems: resultJoin.problems,
                success: true
             });

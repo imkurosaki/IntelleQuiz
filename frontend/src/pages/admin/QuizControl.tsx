@@ -1,7 +1,7 @@
 import { useRecoilValue } from "recoil";
 import Button from "../../components/Button";
 import { useSocket } from "../../lib/hooks";
-import { AdminInfo, adminInfo } from "../../store";
+import { AdminInfo, adminInfo } from "../../store/admin.ts";
 import { useNavigate } from "react-router-dom";
 import { Socket } from "socket.io-client";
 

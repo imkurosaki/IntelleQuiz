@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useSocket } from "../../lib/hooks";
 import { Socket } from "socket.io-client";
-import { AdminInfo, adminInfo } from "../../store";
+import { AdminInfo, adminInfo } from "../../store/admin.ts";
 import { useRecoilState, useRecoilValue } from "recoil";
 import Input from "../../components/Input";
 import Button from "../../components/Button";

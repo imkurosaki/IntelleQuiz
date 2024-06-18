@@ -9,13 +9,14 @@ import Leaderboard from "../components/Room/Leaderboard";
 import EndRoom from "../components/Room/EndRoom";
 import { useSocket } from "../lib/hooks";
 import { Socket } from "socket.io-client";
-import { ParticipantInfo, participantInfo } from "../store/participant";
-import { useRecoilState } from "recoil";
+import { ParticipantInfo, participantInfo, userJoinInfo } from "../store/participant";
+import { useRecoilState, useRecoilValue } from "recoil";
+import JoinPage from "../components/Room/JoinPage";
 
 export default function Room() {
    const { roomIdParams } = useParams();
-   const [username, setUsername] = useState("");
-   const [roomId, setRoomId] = useState("");
+   // const [username, setUsername] = useState("");
+   // const [roomId, setRoomId] = useState("");
    const navigate = useNavigate();
    const [status, setStatus] = useState("")
    const [leaderboard, setLeaderboard] = useState([]);
@@ -37,6 +38,7 @@ export default function Room() {
    const [noOfProblems, setNoOfProblems] = useState(0);
    const socket: Socket = useSocket();
    const [participantInfoAtom, setParticipantAtom] = useRecoilState(participantInfo);
+   const userJoinInfoAtom = useRecoilValue(userJoinInfo);
 
    useEffect(() => {
       socket.on("resultJoin", (data: ParticipantInfo) => {
@@ -83,34 +85,15 @@ export default function Room() {
       }
    }, [socket, navigate, setParticipantAtom]);
 
-   const handleClick = () => {
-      socket.emit("JoinUser", {
-         username,
-         roomId
-      })
-   }
+   // const handleJoinSubmit = () => {
+   //    socket.emit("JoinUser", {
+   //       username,
+   //       roomId
+   //    })
+   // }
 
    if (!roomIdParams || !status) {
-      return <div className="flex justify-center items-center h-screen w-full">
-         <div className="w-[300px]">
-            <div className="text-center">
-               <p className="text-lg text-gray-700">Enter the code to join</p>
-               <p className="text-sm text-gray-600">It's on the screen in front of you</p>
-            </div>
-            <div className="flex flex-col gap-3 mt-5">
-               <Input placeholder="1234 5678" type="text" onChange={(e: any) => setRoomId(e.target.value)} />
-               <Input placeholder="Your name" type="text" onChange={(e: any) => setUsername(e.target.value)} />
-            </div>
-            <div className="px-10 mt-8">
-               <Button
-                  onClick={handleClick}
-                  className="py-4 w-full text-white rounded-full border-2 border-gray-200"
-               >
-                  Join
-               </Button>
-            </div>
-         </div>
-      </div>
+      return <JoinPage socket={socket} />
    }
 
    if (status === "finished") {
@@ -120,7 +103,7 @@ export default function Room() {
             <button className="bg-gray-900 hover:bg-gray-800 px-8 py-3 text-white rounded-md"
                onClick={() => {
                   socket.emit("leaveRoom", {
-                     roomId
+                     roomId: userJoinInfoAtom.roomId
                   })
                   navigate("/room")
                }}
@@ -132,7 +115,7 @@ export default function Room() {
    if (status === "waiting") {
       if (userInfo.id === "") {
          participants.map((participant: Participant) => {
-            if (participant.username === username) {
+            if (participant.username === userJoinInfoAtom.username) {
                setUserInfo(participant);
                return;
             }
@@ -144,7 +127,7 @@ export default function Room() {
       return <WaitingPage
          user={userInfo}
          participants={participants.filter((participant: Participant) => {
-            return participant.username !== username
+            return participant.username !== userJoinInfoAtom.username
          })}
          noOfProblems={noOfProblems}
       />

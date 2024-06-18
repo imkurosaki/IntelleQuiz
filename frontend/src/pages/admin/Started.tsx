@@ -6,7 +6,7 @@ import Button from "../../components/Button";
 import { Participant } from "../../components/Room/WaitingPage";
 import Leaderboard from "../../components/Room/Leaderboard";
 import { useRecoilState, useRecoilValue } from "recoil";
-import { AdminInfo, adminInfo } from "../../store";
+import { AdminInfo, adminInfo } from "../../store/admin.ts";
 import Modal from "../../components/Modal";
 import { useNavigate } from "react-router-dom";
 import EndRoom from "../../components/Room/EndRoom";

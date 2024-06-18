@@ -4,17 +4,30 @@ import Button from "../../components/Button";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useSetRecoilState } from "recoil";
-import { AdminInfo, adminInfo } from "../../store";
+import { AdminInfo, adminInfo } from "../../store/admin.ts";
 import { useSocket } from "../../lib/hooks";
 import { Socket } from "socket.io-client";
+import { adminRegisterInput } from "../../zod/adminValidation.ts";
 
 export default function Register() {
    const [username, setUsername] = useState("");
    const navigate = useNavigate();
    const setAdminInfo = useSetRecoilState<AdminInfo>(adminInfo);
    const socket: Socket = useSocket();
+   const [error, setError] = useState("");
 
    const onClickHandler = () => {
+      const validation: any = adminRegisterInput.safeParse({ username });
+      if (!validation.success) {
+         const errors: any = JSON.parse(validation.error.message);
+         setError(errors[0].message);
+
+         setTimeout(() => {
+            setError("")
+         }, 3000)
+         return;
+      }
+
       if (!username) {
          toast("Please enter a username", {
             className: "bg-gray-950 text-white",
@@ -53,6 +66,7 @@ export default function Register() {
       <div className="w-[500px] border border-gray-200 shadow-md px-10 py-14 rounded-lg">
          <div>
             <p className="mb-4">Username</p>
+            <div className={`${error !== "" ? "block vibrate" : "hidden"} border border-gray-400 rounded-lg text-center py-3 px-2 my-4 bg-red-700 text-sm text-white w-full shadow-lg`}>{error}</div>
             <Input
                type="text"
                placeholder="Enter username"

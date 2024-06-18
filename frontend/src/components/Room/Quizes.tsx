@@ -7,6 +7,7 @@ export type Problem = {
    roomId: string;
    title: string;
    id: string;
+   answer?: number;
    options: string[];
    countdown: number;
 }
