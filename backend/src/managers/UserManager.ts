@@ -14,25 +14,28 @@ export class UserManager {
    addUser(socket: Socket) {
       console.log("connected")
       socket.on("Admin", async ({ username }: { username: string }) => {
-         const result = await prisma.admin.create({
-            data: {
-               username,
-            }
-         })
-         console.log(result)
          if (!username) {
             socket.emit("error", {
                error: "Please enter username"
             })
             return;
          }
-         this.quizManager.addAdmin(username)
+         this.quizManager.addAdmin(username, socket);
 
-         socket.on("addRoom", ({ roomName }: { roomName: string }) => {
-            const username = this.quizManager.admin;
-            if (!username) {
+         socket.on("addRoom", async ({ roomName }: {
+            roomName: string,
+            username: string,
+         }) => {
+            // const username = this.quizManager.admin;
+            const admin = await prisma.admin.findFirst({
+               where: {
+                  username: username
+               }
+            })
+            if (!admin) {
                return
             }
+
             const room: {
                error: boolean,
                message: string

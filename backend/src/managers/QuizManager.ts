@@ -3,6 +3,7 @@ import { Problem, Quiz } from "../Quiz";
 import { v4 as uuidv4 } from 'uuid';
 import { IoManager } from "./IoManager";
 import { generateRandomString } from "../lib/randomStrings";
+import prisma from "../db";
 
 export enum Status {
    Waiting = "waiting",
@@ -32,7 +33,7 @@ export const MAX_TIME_SEC = 10;
 const MAXPOINTS = 200;
 
 export class QuizManager {
-   public admin?: string;
+   // public admin?: string;
    private rooms: Room[];
 
    constructor() {
@@ -80,13 +81,28 @@ export class QuizManager {
       };
    }
 
-   addAdmin(username: string) {
+   async addAdmin(username: string, socket: Socket) {
       if (!username) {
          console.log("No username")
          return;
       }
-      this.admin = username;
-      console.log(this.admin);
+      // this.admin = username;
+      try {
+         const result = await prisma.admin.create({
+            data: {
+               username
+            }
+         })
+         console.log(result)
+         socket.emit("resultAdmin", {
+            id: result.id,
+            username: result.username
+         })
+      } catch (e: any) {
+         socket.emit("error", {
+            error: "Email / Username is already taken"
+         })
+      }
    }
 
    addUser(roomId: string, username: string, socket: Socket) {
