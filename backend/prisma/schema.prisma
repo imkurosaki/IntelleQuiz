@@ -33,8 +33,8 @@ model Admin {
 }
 
 model Room {
-   id        String   @id @default(uuid())
-   name      String   @unique
+   id        String   @id
+   name      String
    status    Status   @default(WAITING)
    admin     Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
    adminId   String
@@ -46,20 +46,21 @@ model Room {
 }
 
 model Quiz {
-   id        String    @id @default(uuid())
-   startTime DateTime
-   problems  Problem[]
+   id             String    @id @default(uuid())
+   problems       Problem[]
+   currentProblem Int       @default(0)
 
    room   Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
    roomId String
 }
 
 model Problem {
-   id        String   @id @default(uuid())
-   title     String   @db.Text
+   id        String    @id @default(uuid())
+   title     String    @db.Text
    options   Option[]
    answer    Int
-   countdown Int      @default(10) //countdown default by 10 sec
+   countdown Int       @default(10) //countdown default by 10 sec
+   startTime DateTime?
 
    quiz   Quiz   @relation(fields: [quizId], references: [id], onDelete: Cascade)
    quizId String

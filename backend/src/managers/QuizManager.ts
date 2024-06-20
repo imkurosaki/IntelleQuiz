@@ -54,39 +54,69 @@ export class QuizManager {
       };
    }
 
-   addRoom(roomName: string, admin: string) {
-      const room = this.rooms.find((room: Room) => room.name === roomName && room.admin === admin);
+   async addRoom(roomName: string, adminId: string, socket: Socket) {
+      const room = await prisma.room.findFirst({
+         where: {
+            name: roomName,
+            adminId: adminId
+         }
+      });
+      // const room = this.rooms.find((room: Room) => room.name === roomName && room.admin === admin);
       if (room) {
          console.log("room is already exist " + roomName);
-         return {
-            error: true,
-            message: `${roomName} Room is already exist`,
-            roomId: ""
-         };
+         // return {
+         //    error: true,
+         //    message: `${roomName} Room is already exist`,
+         //    roomId: ""
+         // };
+         socket.emit("error", {
+            error: `${roomName} Room is already exist`
+         })
+         return;
       }
-      const roomId: string = generateRandomString(15)
-      this.rooms.push({
-         id: roomId,
-         name: roomName,
-         admin,
-         status: Status.Waiting,
-         quiz: new Quiz(roomId),
-         users: [],
-      })
-      console.log("successfully added room " + this.rooms)
-      return {
-         error: false,
-         message: "Room is successfully added",
-         roomId
-      };
+
+      try {
+         const roomId: string = generateRandomString(15)
+         const newRoom = await prisma.room.create({
+            data: {
+               id: roomId,
+               name: roomName,
+               adminId,
+            }
+         });
+         const quiz = await prisma.quiz.create({
+            data: {
+               roomId: roomId
+            }
+         })
+         socket.emit("room", {
+            message: "Room is successfully added",
+            roomId: newRoom.id,
+            quizId: quiz.id
+         })
+      } catch (e: any) {
+         socket.emit("error", {
+            error: `${roomName} Room is already exist`
+         })
+      }
+
+      // this.rooms.push({
+      //    id: roomId,
+      //    name: roomName,
+      //    admin,
+      //    status: Status.Waiting,
+      //    quiz: new Quiz(roomId),
+      //    users: [],
+      // })
+      // console.log("successfully added room " + this.rooms)
+      // return {
+      //    error: false,
+      //    message: "Room is successfully added",
+      //    roomId
+      // };
    }
 
    async addAdmin(username: string, socket: Socket) {
-      if (!username) {
-         console.log("No username")
-         return;
-      }
-      // this.admin = username;
       try {
          const result = await prisma.admin.create({
             data: {
@@ -142,20 +172,79 @@ export class QuizManager {
       };
    }
 
-   addQuiz(roomId: string, title: string, options: string[], answer: number, countdown: number) {
-      const room = this.rooms.find((room: Room) => room.id === roomId)
-      if (!room) {
-         console.log("No room found")
-         return {
-            error: true,
-            message: "No room found"
-         };
-      }
-      const quiz = room.quiz;
-      quiz.addQuiz(roomId, title, options, answer, countdown);
-      return {
-         error: false,
-         message: "Problem added successfully"
+   // async addQuiz(roomId: string, quizId: string, title: string, options: string[], answer: number, countdown: number, socket: Socket) {
+   //    const room = prisma.room.findFirst({
+   //       where: {
+   //          id: roomId
+   //       }
+   //    })
+   //    // const room = this.rooms.find((room: Room) => room.id === roomId)
+   //    if (!room) {
+   //       console.log("No room found")
+   //       // return {
+   //       //    error: true,
+   //       //    message: "No room found"
+   //       // };
+   //       socket.emit("error", {
+   //          error: `${roomId} Room is already exist`
+   //       })
+   //       return;
+   //    }
+   //
+   //    // const quiz = room.quizes;
+   //    try {
+   //       const newProblem = await prisma.problem.create({
+   //          data: {
+   //             title: title,
+   //          }
+   //       })
+   //       const options = await prisma.option.create({
+   //          data: {
+   //             choice: optio
+   //          }
+   //       })
+   //
+   //    } catch (e: any) {
+   //       socket.emit("error", {
+   //          error: ""
+   //       })
+   //    }
+   //    // quiz.addQuiz(roomId, title, options, answer, countdown);
+   //    // return {
+   //    //    error: false,
+   //    //    message: "Problem added successfully"
+   //    // }
+   // }
+
+   async addProblem(quizId: string, title: string, options: string[], answer: number, countdown: number, socket: Socket) {
+      try {
+         const problem = await prisma.problem.create({
+            data: {
+               title: title,
+               answer: answer,
+               countdown: countdown,
+               quizId: quizId
+            }
+         });
+
+         const optionPromises = options.map((option: string) => {
+            return prisma.option.create({
+               data: {
+                  choice: option,
+                  problemId: problem.id
+               }
+            })
+         });
+
+         await Promise.all(optionPromises);
+
+         socket.emit("success", {
+            message: "Successfully added the problem"
+         })
+      } catch (e: any) {
+         socket.emit("error", {
+            error: "Failed to add problem"
+         })
       }
    }
 
@@ -195,60 +284,105 @@ export class QuizManager {
       return Math.round(points * 1000) / 1000;
    }
 
-   start(roomId: string) {
-      console.log(roomId)
-      const room = this.rooms.find((room: Room) => room.id === roomId)
-      if (!room) {
-         console.log("No room found")
-         return {
-            error: true,
-            message: "No room found",
-            countdown: 0
-         };
-      }
+   async start(roomId: string, quizId: string) {
+      // const room = this.rooms.find((room: Room) => room.id === roomId)
 
-      const problem = room.quiz.start();
-      if (!problem) {
-         console.log("You don't have a problem yet.")
-         return {
-            error: true,
-            message: "You don't have a problem yet.",
-            countdown: 0
-         }
-      }
-
-      if (room.status !== "waiting") {
-         return {
-            error: true,
-            message: "You can't re-start the quiz",
-            countdown: 0
-         };
-      }
-      console.log(problem)
-      room.status = Status.Started;
-      room.quiz.startTime = new Date().getTime();
-
-      IoManager.io.to(roomId).emit("problem", {
-         problem: {
-            id: problem.id,
-            roomId: problem.roomId,
-            title: problem.title,
-            options: problem.options,
-            countdown: problem.countdown,
+      const quiz = await prisma.quiz.findFirst({
+         where: {
+            id: quizId,
+            roomId: roomId
          },
-         status: room.status
+         select: {
+            problems: {
+               select: {
+                  title: true,
+                  options: true,
+                  answer: true,
+                  countdown: true,
+                  quizId: true
+               }
+            },
+            currentProblem: true,
+            roomId: true
+         }
       });
-      console.log("kean started")
-      IoManager.io.to(roomId).emit("adminProblem", {
-         problem,
-         index: 0,
-         status: room.status
-      })
-      return {
-         error: false,
-         message: "The quiz is started by the admin",
-         countdown: problem.countdown
+
+      if (!quiz) {
+         return;
       }
+
+      // console.log(quiz)
+
+      try {
+         const problem = quiz.problems[0];
+
+         console.log(problem)
+
+         const resultQuiz = await prisma.quiz.update({
+            where: {
+               id: quizId,
+               roomId: roomId
+            },
+            data: {
+               currentProblem: quiz.currentProblem + 1
+            }
+         });
+         console.log(problem);
+         console.log(resultQuiz);
+      } catch (e: any) {
+         console.log(e)
+      }
+      // if (!room) {
+      //    console.log("No room found")
+      //    return {
+      //       error: true,
+      //       message: "No room found",
+      //       countdown: 0
+      //    };
+      // }
+      //
+      // const problem = room.quiz.start();
+      // if (!problem) {
+      //    console.log("You don't have a problem yet.")
+      //    return {
+      //       error: true,
+      //       message: "You don't have a problem yet.",
+      //       countdown: 0
+      //    }
+      // }
+      //
+      // if (room.status !== "waiting") {
+      //    return {
+      //       error: true,
+      //       message: "You can't re-start the quiz",
+      //       countdown: 0
+      //    };
+      // }
+      // console.log(problem)
+      // room.status = Status.Started;
+      // room.quiz.startTime = new Date().getTime();
+      //
+      // IoManager.io.to(roomId).emit("problem", {
+      //    problem: {
+      //       id: problem.id,
+      //       roomId: problem.roomId,
+      //       title: problem.title,
+      //       options: problem.options,
+      //       countdown: problem.countdown,
+      //    },
+      //    status: room.status
+      // });
+      // console.log("kean started")
+      // IoManager.io.to(roomId).emit("adminProblem", {
+      //    problem,
+      //    index: 0,
+      //    status: room.status
+      // })
+      // return {
+      //    error: false,
+      //    message: "The quiz is started by the admin",
+      //    countdown: problem.countdown
+      // }
    }
 
    next(roomId: string) {
