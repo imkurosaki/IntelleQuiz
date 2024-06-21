@@ -32,7 +32,7 @@ export interface User {
 export const MAX_TIME_SEC = 10;
 const MAXPOINTS = 200;
 
-export class QuizManager {
+export class AdminManager {
    // public admin?: string;
    private rooms: Room[];
 
@@ -284,54 +284,238 @@ export class QuizManager {
       return Math.round(points * 1000) / 1000;
    }
 
-   async start(roomId: string, quizId: string) {
-      // const room = this.rooms.find((room: Room) => room.id === roomId)
-
-      const quiz = await prisma.quiz.findFirst({
+   async start(roomId: string, quizId: string, socket: Socket) {
+      const room = await prisma.room.findFirst({
          where: {
-            id: quizId,
-            roomId: roomId
+            id: roomId
          },
          select: {
-            problems: {
+            quizes: {
+               where: {
+                  id: quizId,
+                  roomId: roomId
+               },
                select: {
-                  title: true,
-                  options: true,
-                  answer: true,
-                  countdown: true,
-                  quizId: true
+                  problems: {
+                     orderBy: {
+                        createdAt: 'asc'
+                     },
+                     select: {
+                        id: true,
+                        title: true,
+                        options: true,
+                        answer: true,
+                        countdown: true,
+                        quizId: true
+                     }
+                  },
+                  currentProblem: true,
+                  roomId: true
                }
             },
-            currentProblem: true,
-            roomId: true
+            status: true,
          }
-      });
+      })
 
-      if (!quiz) {
+      if (!room?.quizes) {
+         socket.emit("error", {
+            error: `Quiz id ${quizId} doesn't found`
+         })
          return;
       }
 
-      // console.log(quiz)
+      //select the first problem 
+      const problem = room?.quizes[0].problems[0];
+      if (!problem) {
+         socket.emit("error", {
+            error: `You don't have a problem yet`
+         })
+         return;
+      }
+
+      if (room.status === "ONGOING" || room.status === "STARTED") {
+         socket.emit("error", {
+            error: `You can't restart the quiz`
+         })
+         return;
+      }
 
       try {
-         const problem = quiz.problems[0];
+         await prisma.$transaction(async (prisma) => {
+            await prisma.quiz.update({
+               where: {
+                  id: quizId,
+                  roomId: roomId
+               },
+               data: {
+                  currentProblem: room.quizes[0].currentProblem + 1
+               }
+            });
 
-         console.log(problem)
+            await prisma.problem.update({
+               where: {
+                  id: problem.id,
+               },
+               data: {
+                  startTime: new Date()
+               }
+            });
 
-         const resultQuiz = await prisma.quiz.update({
-            where: {
-               id: quizId,
-               roomId: roomId
-            },
-            data: {
-               currentProblem: quiz.currentProblem + 1
-            }
+            await prisma.room.update({
+               where: {
+                  id: roomId
+               },
+               data: {
+                  status: "STARTED"
+               }
+            })
+
+            IoManager.io.to(roomId).emit("participantProblem", {
+               problem: {
+                  id: problem.id,
+                  roomId: roomId,
+                  title: problem.title,
+                  options: problem.options,
+                  countdown: problem.countdown,
+               },
+               status: room.status
+            });
+
+            IoManager.io.to(roomId).emit("adminProblem", {
+               problem,
+               index: 0,
+               status: room.status
+            })
+            this.getLeaderboard(quizId, roomId, problem.countdown);
          });
-         console.log(problem);
-         console.log(resultQuiz);
       } catch (e: any) {
          console.log(e)
+         socket.emit("error", {
+            error: "Error fetching quiz, try again later"
+         })
       }
+   }
+
+   async next(roomId: string, quizId: string, socket: Socket) {
+      const room = await prisma.room.findFirst({
+         where: {
+            id: roomId
+         },
+         select: {
+            quizes: {
+               where: {
+                  id: quizId,
+                  roomId: roomId
+               },
+               select: {
+                  problems: {
+                     orderBy: {
+                        createdAt: 'asc'
+                     },
+                     select: {
+                        id: true,
+                        title: true,
+                        options: true,
+                        answer: true,
+                        countdown: true,
+                        quizId: true,
+                        createdAt: true
+                     }
+                  },
+                  currentProblem: true,
+                  roomId: true
+               }
+            },
+            status: true,
+            participants: true
+         }
+      });
+
+      console.log(room?.participants)
+
+      if (!room?.quizes) {
+         socket.emit("error", {
+            error: `Quiz id ${quizId} doesn't found`
+         })
+         return;
+      }
+
+      const noOfProblems: number = room.quizes[0].problems.length;
+      const quiz = room.quizes[0];
+      if (noOfProblems === quiz.currentProblem) {
+         socket.emit("error", {
+            error: `There's no problems left.`
+         })
+         return;
+      }
+
+      if (room.status === "WAITING") {
+         socket.emit("error", {
+            error: `Quiz is not started yet`
+         })
+         return;
+      }
+
+      try {
+         await prisma.$transaction(async (prisma) => {
+            const problem = room?.quizes[0].problems[quiz.currentProblem];
+            // Update Quiz
+            await prisma.quiz.update({
+               where: {
+                  id: quizId,
+                  roomId: roomId
+               },
+               data: {
+                  currentProblem: room.quizes[0].currentProblem + 1
+               }
+            });
+
+            // Update Problem
+            await prisma.problem.update({
+               where: {
+                  id: problem.id,
+               },
+               data: {
+                  startTime: new Date()
+               }
+            });
+
+            // Update Room
+            await prisma.room.update({
+               where: {
+                  id: roomId
+               },
+               data: {
+                  status: "ONGOING"
+               }
+            })
+
+            IoManager.io.to(roomId).emit("participantProblem", {
+               problem: {
+                  id: problem.id,
+                  roomId: roomId,
+                  title: problem.title,
+                  options: problem.options,
+                  countdown: problem.countdown,
+               },
+               status: room.status
+            });
+
+            IoManager.io.to(roomId).emit("adminProblem", {
+               problem,
+               index: quiz.currentProblem,
+               status: room.status
+            })
+            this.getLeaderboard(quizId, roomId, problem.countdown);
+         });
+      } catch (e: any) {
+         console.log(e)
+         socket.emit("error", {
+            error: "Error fetching quiz, try again later"
+         })
+      }
+
+      // const room = this.rooms.find((room: Room) => room.id === roomId)
       // if (!room) {
       //    console.log("No room found")
       //    return {
@@ -341,27 +525,16 @@ export class QuizManager {
       //    };
       // }
       //
-      // const problem = room.quiz.start();
-      // if (!problem) {
-      //    console.log("You don't have a problem yet.")
+      // const { error, problem, index }: any = room.quiz.next();
+      // if (error) {
       //    return {
       //       error: true,
-      //       message: "You don't have a problem yet.",
+      //       message: "There's no problems left.",
       //       countdown: 0
       //    }
       // }
-      //
-      // if (room.status !== "waiting") {
-      //    return {
-      //       error: true,
-      //       message: "You can't re-start the quiz",
-      //       countdown: 0
-      //    };
-      // }
-      // console.log(problem)
-      // room.status = Status.Started;
+      // room.status = Status.Ongoing;
       // room.quiz.startTime = new Date().getTime();
-      //
       // IoManager.io.to(roomId).emit("problem", {
       //    problem: {
       //       id: problem.id,
@@ -372,100 +545,117 @@ export class QuizManager {
       //    },
       //    status: room.status
       // });
-      // console.log("kean started")
       // IoManager.io.to(roomId).emit("adminProblem", {
       //    problem,
-      //    index: 0,
+      //    index,
       //    status: room.status
       // })
       // return {
       //    error: false,
-      //    message: "The quiz is started by the admin",
+      //    message: "",
       //    countdown: problem.countdown
+      // };g
+   }
+
+   async endQuiz(roomId: string, quizId: string, socket: Socket) {
+      const leaderboard: Leaderboard[] = await prisma.points.findMany({
+         where: {
+            quizId: quizId
+         },
+         orderBy: {
+            points: 'desc'
+         },
+         select: {
+            points: true,
+            participant: {
+               select: {
+                  id: true,
+                  username: true
+               }
+            }
+         }
+      })
+
+      console.log(leaderboard)
+      try {
+         await prisma.$transaction(async (prisma) => {
+            await prisma.room.update({
+               where: {
+                  id: roomId
+               },
+               data: {
+                  status: "FINISHED",
+               }
+            });
+
+            await prisma.quiz.update({
+               where: {
+                  id: quizId,
+                  roomId: roomId
+               },
+               data: {
+                  currentProblem: 0
+               }
+            });
+
+            IoManager.io.to(roomId).emit("end", {
+               status: "FINISHED",
+               leaderboard: leaderboard
+            });
+         });
+      } catch (e: any) {
+         socket.emit("error", {
+            error: "Server failure, try agin later."
+         })
+      }
+
+      // const room = this.rooms.find((room: Room) => room.id === roomId) if (!room) { console.log("No room found") return { error: true, message: "No room found" }; }
+      //
+      // room.status = Status.Finished;
+      // IoManager.io.to(roomId).emit("end", {
+      //    status: room.status,
+      //    leaderboard: this.leaderboard(room),
+      // });
+      // return {
+      //    error: false,
+      //    message: "Room is end"
       // }
    }
 
-   next(roomId: string) {
-      const room = this.rooms.find((room: Room) => room.id === roomId)
-      if (!room) {
-         console.log("No room found")
-         return {
-            error: true,
-            message: "No room found",
-            countdown: 0
-         };
-      }
-
-      const { error, problem, index }: any = room.quiz.next();
-      if (error) {
-         return {
-            error: true,
-            message: "There's no problems left.",
-            countdown: 0
-         }
-      }
-      room.status = Status.Ongoing;
-      room.quiz.startTime = new Date().getTime();
-      IoManager.io.to(roomId).emit("problem", {
-         problem: {
-            id: problem.id,
-            roomId: problem.roomId,
-            title: problem.title,
-            options: problem.options,
-            countdown: problem.countdown,
+   async getLeaderboard(quizId: string, roomId: string, countdown: number) {
+      // const room = this.rooms.find((room: Room) => room.id === roomId)
+      // if (!room) {
+      //    console.log("No room found")
+      //    return;
+      // }
+      const leaderboard: Leaderboard[] = await prisma.points.findMany({
+         where: {
+            quizId: quizId
          },
-         status: room.status
-      });
-      IoManager.io.to(roomId).emit("adminProblem", {
-         problem,
-         index,
-         status: room.status
+         orderBy: {
+            points: 'desc'
+         },
+         select: {
+            points: true,
+            participant: {
+               select: {
+                  id: true,
+                  username: true
+               }
+            }
+         }
       })
-      return {
-         error: false,
-         message: "",
-         countdown: problem.countdown
-      };
-   }
-
-   endQuiz(roomId: string) {
-      const room = this.rooms.find((room: Room) => room.id === roomId)
-      if (!room) {
-         console.log("No room found")
-         return {
-            error: true,
-            message: "No room found"
-         };
-      }
-
-      room.status = Status.Finished;
-      IoManager.io.to(roomId).emit("end", {
-         status: room.status,
-         leaderboard: this.leaderboard(room),
-      });
-      return {
-         error: false,
-         message: "Room is end"
-      }
-   }
-
-   getLeaderboard(roomId: string, countdown: number) {
-      const room = this.rooms.find((room: Room) => room.id === roomId)
-      if (!room) {
-         console.log("No room found")
-         return;
-      }
 
       setTimeout(() => {
          // const leaderboard = room.users.sort((a, b) => a.points - b.points).reverse();
          IoManager.io.to(roomId).emit("leaderboard", {
-            leaderboard: this.leaderboard(room),
+            leaderboard: leaderboard,
             status: "leaderboard",
          });
       }, countdown * 1000)
    }
-
-   private leaderboard(room: Room) {
-      return room.users.sort((a, b) => a.points - b.points).reverse();
-   }
+   //
+   // private leaderboard(room: Room) {
+   //    return room.users.sort((a, b) => a.points - b.points).reverse();
+   // }
 }

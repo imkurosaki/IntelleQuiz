@@ -16,11 +16,13 @@ datasource db {
 model Participant {
    id        String   @id @default(uuid())
    username  String   @unique
+   password  String
    createdAt DateTime @default(now())
    updatedAt DateTime @updatedAt
+   image     Int
 
-   room   Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
-   roomId String
+   points Points[]
+   rooms  Room[]
 }
 
 model Admin {
@@ -52,6 +54,19 @@ model Quiz {
 
    room   Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
    roomId String
+
+   points Points[]
+}
+
+model Points {
+   id     String @id @default(uuid())
+   points Int    @default(0)
+
+   participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+   participantId String
+
+   quiz   Quiz   @relation(fields: [quizId], references: [id], onDelete: Cascade)
+   quizId String
 }
 
 model Problem {
@@ -61,6 +76,7 @@ model Problem {
    answer    Int
    countdown Int       @default(10) //countdown default by 10 sec
    startTime DateTime?
+   createdAt DateTime  @default(now())
 
    quiz   Quiz   @relation(fields: [quizId], references: [id], onDelete: Cascade)
    quizId String
