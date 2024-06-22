@@ -16,46 +16,24 @@ export class UserManager {
 
    addUser(socket: Socket) {
       console.log("connected")
-      socket.on("Admin", async ({ username }: { username: string }) => {
-         socket.on("signin", async ({ username }: {
-            username: string
-         }) => {
-            try {
-               const admin = await prisma.admin.findFirst({
-                  where: {
-                     username: username
-                  }
-               });
+      socket.on("RegisterAdmin", ({ username, password }: {
+         username: string,
+         password: string,
+      }) => {
+         if (!username) {
+            socket.emit("error", {
+               error: "Please enter username"
+            })
+            return;
+         }
+         this.adminManager.registerAdmin(username, password, socket);
+      })
 
-               if (!admin) {
-                  socket.emit("error", {
-                     error: "Admin doesn't found"
-                  })
-               } else {
-                  socket.emit("success", {
-                     message: "You've successfully login",
-                     username: admin.username
-                  })
-               }
-            } catch (e: any) {
-               socket.emit("server-error", {
-                  error: "Something error happened, try again later."
-               })
-            }
-         })
-
-         socket.on("register", async ({ username, password }: {
-            username: string,
-            password: string,
-         }) => {
-            if (!username) {
-               socket.emit("error", {
-                  error: "Please enter username"
-               })
-               return;
-            }
-            this.adminManager.addAdmin(username, socket);
-         })
+      socket.on("SigninAdmin", async ({ username, password }: {
+         username: string,
+         password: string
+      }) => {
+         this.adminManager.signinAdmin(username, password, socket)
 
          socket.on("addRoom", async ({ username, roomName }: {
             roomName: string,
@@ -123,17 +101,16 @@ export class UserManager {
             // }
          })
 
-         socket.on("getQuiz", ({ roomId }: { roomId: string }) => {
-            const quiz = this.adminManager.getQuiz(roomId)
-            console.log("quiz" + JSON.stringify(quiz))
-         })
+         // socket.on("getQuiz", ({ roomId }: { roomId: string }) => {
+         //    const quiz = this.adminManager.getQuiz(roomId)
+         //    console.log("quiz" + JSON.stringify(quiz))
+         // })
 
          socket.on("start", ({ roomId, quizId }: {
             roomId: string,
             quizId: string,
          }) => {
             // join the admin roomId
-            socket.join(roomId);
             // const result: {
             //    error: boolean,
             //    message: string,
@@ -154,46 +131,52 @@ export class UserManager {
             // }
          })
 
-         // socket.on("start-automatically", async ({ roomId }: {
-         //    roomId: string,
-         // }) => {
-         //    const SECONDS_DELAY = 10;
-         //    let COUNTDOWN_TIMER = 0;
-         //    const { room, error }: {
-         //       room: Room | null,
-         //       error: string | null
-         //    } = this.adminManager.findRoom(roomId);
-         //
-         //    console.log("room" + room)
-         //
-         //    if (!room) {
-         //       console.log("error in start-automatically")
-         //       socket.emit("error", error);
-         //       return;
-         //    }
-         //
-         //    // join the admin roomId
-         //    socket.join(roomId);
-         //    socket.emit("operation", {
-         //       operation: "start-automatically"
-         //    })
-         //    const noOfProblems: number = room?.quiz.getQuiz().length;
-         //    for (let i = 0; i < noOfProblems; i++) {
-         //       if (i === 0) {
-         //          //begin the quiz
-         //          const result: any = this.adminManager.start(roomId);
-         //          COUNTDOWN_TIMER = result.countdown;
-         //          this.adminManager.getLeaderboard(roomId, result.countdown);
-         //       } else {
-         //          const result: any = this.adminManager.next(roomId);
-         //          COUNTDOWN_TIMER = result.countdown;
-         //          this.adminManager.getLeaderboard(roomId, result.countdown);
-         //       }
-         //       await new Promise(r => setTimeout(r, (COUNTDOWN_TIMER + SECONDS_DELAY) * 1000));
-         //    }
-         //    //end of the quiz
-         //    this.adminManager.endQuiz(roomId);
-         // })
+         socket.on("start-automatically", async ({ roomId, quizId }: {
+            roomId: string,
+            quizId: string
+         }) => {
+            const SECONDS_DELAY: number = 10;
+            let COUNTDOWN_TIMER: number = 0;
+
+            // const { room, error }: {
+            //    room: Room | null,
+            //    error: string | null
+            // } = this.adminManager.findRoom(roomId);
+
+            // console.log("room" + room)
+
+            // if (!room) {
+            //    console.log("error in start-automatically")
+            //    socket.emit("error", error);
+            //    return;
+            // }
+
+            // join the admin roomId
+            // socket.join(roomId);
+            socket.emit("operation", {
+               operation: "start-automatically"
+            });
+
+            // const noOfProblems: number = room?.quiz.getQuiz().length;
+
+            const noOfProblems: number = await this.adminManager.getNoOfProblems(roomId, quizId, socket);
+
+            for (let i = 0; i < noOfProblems; i++) {
+               if (i === 0) {
+                  //begin the quiz
+
+                  COUNTDOWN_TIMER = await this.adminManager.start(roomId, quizId, socket);
+                  this.adminManager.getLeaderboard(quizId, roomId, COUNTDOWN_TIMER);
+               } else {
+                  const result: any = this.adminManager.next(roomId, quizId, socket);
+                  COUNTDOWN_TIMER = result.countdown;
+                  this.adminManager.getLeaderboard(quizId, roomId, COUNTDOWN_TIMER);
+               }
+               await new Promise(r => setTimeout(r, (COUNTDOWN_TIMER + SECONDS_DELAY) * 1000));
+            }
+            //end of the quiz
+            this.adminManager.endQuiz(roomId, quizId, socket);
+         })
 
          socket.on("next", ({ roomId, quizId }: {
             roomId: string,
@@ -247,23 +230,28 @@ export class UserManager {
       }) => {
          this.participantManager.singinUser(username, password, socket)
 
-         socket.on("JoinRoom", ({ participantId, roomId, quizId }: {
+         socket.on("JoinRoom", ({ participantId, roomId }: {
             participantId: string,
             roomId: string,
-            quizId: string,
          }) => {
-            this.participantManager.joinRoom(roomId, quizId, participantId, socket);
+            this.participantManager.joinRoom(roomId, participantId, socket);
 
-            socket.on("Submit", ({ participantId, pointsId, roomId, quizId, problemId, answer, countdown }: {
+            socket.on("Submit", ({ participantId, pointsId, roomId, quizId, problemId, answer }: {
                participantId: string,
                pointsId: string,
                roomId: string,
                quizId: string,
                problemId: string,
                answer: number,
-               countdown: number
             }) => {
-               this.participantManager.submitAnswer(participantId, pointsId, roomId, quizId, problemId, answer, countdown, socket);
+               this.participantManager.submitAnswer(participantId, pointsId, roomId, quizId, problemId, answer, socket);
+            })
+
+            socket.on("NoOfProblems", ({ roomId, quizId }: {
+               roomId: string,
+               quizId: string
+            }) => {
+               this.adminManager.getNoOfProblems(roomId, quizId, socket);
             })
 
             socket.on("LeaveRoom", ({ roomId }: {
@@ -272,55 +260,56 @@ export class UserManager {
                socket.leave(roomId);
             })
          })
-      })
 
-      socket.on("JoinUser", ({ username, roomId }: {
-         username: string;
-         roomId: string;
-      }) => {
-         const resultJoin = this.adminManager.addUser(roomId, username, socket);
-         if (resultJoin.error) {
-            socket.emit("resultJoin", {
-               error: resultJoin.error,
-               success: false
-            });
-         } else {
-            console.log(resultJoin.problems)
-            socket.emit("resultJoin", {
-               id: resultJoin.id,
-               roomId: resultJoin.roomId,
-               status: resultJoin.status,
-               image: resultJoin.image,
-               problems: resultJoin.problems,
-               success: true
-            });
-            console.log("Succceessfully join")
-            // socket.join(roomId);
-            // IoManager.io.to(roomId).emit("problem", resultJoin)
-         }
-         socket.on("leaveRoom", ({ roomId }: {
-            roomId: string
-         }) => {
-            console.log("leave room " + roomId)
-            socket.leave(roomId)
+         socket.on("disconnect", () => {
+            console.log("User disconnected")
          })
-
       })
 
+      // socket.on("JoinUser", ({ username, roomId }: {
+      //    username: string;
+      //    roomId: string;
+      // }) => {
+      //    const resultJoin = this.adminManager.addUser(roomId, username, socket);
+      //    if (resultJoin.error) {
+      //       socket.emit("resultJoin", {
+      //          error: resultJoin.error,
+      //          success: false
+      //       });
+      //    } else {
+      //       console.log(resultJoin.problems)
+      //       socket.emit("resultJoin", {
+      //          id: resultJoin.id,
+      //          roomId: resultJoin.roomId,
+      //          status: resultJoin.status,
+      //          image: resultJoin.image,
+      //          problems: resultJoin.problems,
+      //          success: true
+      //       });
+      //       console.log("Succceessfully join")
+      //       // socket.join(roomId);
+      //       // IoManager.io.to(roomId).emit("problem", resultJoin)
+      //    }
+      //    socket.on("leaveRoom", ({ roomId }: {
+      //       roomId: string
+      //    }) => {
+      //       console.log("leave room " + roomId)
+      //       socket.leave(roomId)
+      //    })
+      //
+      // })
 
-      socket.on("Submit", ({ userId, roomId, problemId, answer, countdown }:
-         {
-            userId: string,
-            roomId: string,
-            problemId: string,
-            answer: number,
-            countdown: number,
-         }) => {
-         this.adminManager.submitAnswer(userId, roomId, problemId, answer, countdown);
-      })
 
-      socket.on("disconnect", () => {
-         console.log("User disconnected")
-      })
+      // socket.on("Submit", ({ userId, roomId, problemId, answer, countdown }:
+      //    {
+      //       userId: string,
+      //       roomId: string,
+      //       problemId: string,
+      //       answer: number,
+      //       countdown: number,
+      //    }) => {
+      //    this.adminManager.submitAnswer(userId, roomId, problemId, answer, countdown);
+      // })
+
    }
 }

@@ -12,7 +12,8 @@ export class ParticipantManager {
          const result = await prisma.participant.create({
             data: {
                username: username,
-               password: password
+               password: password,
+               image: Math.floor(Math.random() * 7) + 1
             }
          });
          console.log(result)
@@ -52,7 +53,7 @@ export class ParticipantManager {
       }
    }
 
-   async joinRoom(roomId: string, quizId: string, participantId: string, socket: Socket) {
+   async joinRoom(roomId: string, participantId: string, socket: Socket) {
       const room = await prisma.room.findFirst({
          where: {
             id: roomId
@@ -106,6 +107,7 @@ export class ParticipantManager {
                }
             },
             select: {
+               quizes: true,
                participants: true
             }
          });
@@ -113,7 +115,7 @@ export class ParticipantManager {
          const points = await prisma.points.create({
             data: {
                participantId: participantId,
-               quizId: quizId
+               quizId: updatedRoom.quizes[0].id
             }
          });
          // join the room
@@ -135,7 +137,7 @@ export class ParticipantManager {
       }
    }
 
-   async submitAnswer(participantId: string, pointsId: string, roomId: string, quizId: string, problemId: string, answer: number, countdown: number, socket: Socket) {
+   async submitAnswer(participantId: string, pointsId: string, roomId: string, quizId: string, problemId: string, answer: number, socket: Socket) {
       const endTime: number = new Date().getTime();
 
       const quiz = await prisma.quiz.findUnique({
@@ -153,6 +155,8 @@ export class ParticipantManager {
                select: {
                   id: true,
                   answer: true,
+                  title: true,
+                  countdown: true,
                   startTime: true
                }
             },
@@ -167,6 +171,10 @@ export class ParticipantManager {
       }
 
       const problem = quiz?.problems[0];
+      console.log("problem Id: " + problemId);
+      console.log(quiz.problems);
+      console.log(problem.startTime?.getTime())
+
       if (problem?.answer === answer) {
          console.log("correct answer")
 
@@ -178,7 +186,7 @@ export class ParticipantManager {
             },
             data: {
                points: {
-                  increment: this.calculatePoints(problem.startTime?.getTime() || new Date().getTime(), endTime, countdown)
+                  increment: this.calculatePoints(problem.startTime?.getTime() || new Date().getTime(), endTime, problem.countdown)
                }
             }
          })
@@ -188,7 +196,7 @@ export class ParticipantManager {
       console.log("wrong answer")
    }
 
-   calculatePoints(startTime: number, endTime: number, countdown: number) {
+   private calculatePoints(startTime: number, endTime: number, countdown: number) {
       const durationInMinutes: number = endTime - startTime;
       const durationInSeconds: number = durationInMinutes / 1000;
       const points: number = durationInSeconds > countdown ? 0 :
