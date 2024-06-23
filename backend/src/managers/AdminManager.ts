@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { IoManager } from "./IoManager";
 import { generateRandomString } from "../lib/randomStrings";
 import prisma from "../db";
+import { generateToken } from "../lib/generateToken";
 
 export enum Status {
    Waiting = "waiting",
@@ -150,9 +151,9 @@ export class AdminManager {
             });
             return;
          } else {
-            socket.emit("success", {
+            socket.emit("signed", {
                message: "You've successfully login",
-               username: admin.username
+               token: `Bearer ${generateToken({ adminId: admin.id, username: admin.username })}`
             })
          }
       } catch (e: any) {

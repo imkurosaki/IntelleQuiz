@@ -4,6 +4,7 @@ import { IoManager } from "./IoManager";
 import { Problem, Quiz } from "../Quiz";
 import prisma from "../db";
 import { ParticipantManager } from "./ParticipantManager";
+import { authMiddleware } from "../middlewares/authMiddleware";
 
 export class UserManager {
    private adminManager;
@@ -35,45 +36,56 @@ export class UserManager {
       }) => {
          this.adminManager.signinAdmin(username, password, socket)
 
-         socket.on("addRoom", async ({ username, roomName }: {
+         socket.on("addRoom", ({ username, roomName }: {
             roomName: string,
             username: string,
-         }) => {
-            // const username = this.adminManager.admin;
-            const admin = await prisma.admin.findFirst({
-               where: {
-                  username: username
+         }, callback: CallableFunction) => {
+            // middleware
+            authMiddleware(socket, async (err: any) => {
+               if (err) {
+                  console.log(err);
+                  return callback({
+                     status: 'error',
+                     message: "Authentication error"
+                  })
                }
-            })
 
-            if (!admin) {
-               socket.emit("error", {
-                  error: "Admin doesn't found"
+               // const username = this.adminManager.admin;
+               const admin = await prisma.admin.findFirst({
+                  where: {
+                     username: username
+                  }
                })
-               return;
-            }
 
-            console.log(admin)
+               if (!admin) {
+                  socket.emit("error", {
+                     error: "Admin doesn't found"
+                  })
+                  return;
+               }
 
-            // const room: {
-            //    error: boolean,
-            //    message: string
-            //    roomId: string
-            // } = this.adminManager.addRoom(roomName, admin.id, socket);
-            this.adminManager.addRoom(roomName, admin.id, socket);
+               console.log(admin)
+
+               // const room: {
+               //    error: boolean,
+               //    message: string
+               //    roomId: string
+               // } = this.adminManager.addRoom(roomName, admin.id, socket);
+               this.adminManager.addRoom(roomName, admin.id, socket);
 
 
-            // if (room.error) {
-            //    socket.emit("error", {
-            //       error: room.message
-            //    })
-            //    return;
-            // }
-            // console.log("room added")
-            // socket.emit("room", {
-            //    message: room.message,
-            //    roomId: room.roomId
-            // })
+               // if (room.error) {
+               //    socket.emit("error", {
+               //       error: room.message
+               //    })
+               //    return;
+               // }
+               // console.log("room added")
+               // socket.emit("room", {
+               //    message: room.message,
+               //    roomId: room.roomId
+               // })
+            });
          })
 
          socket.on("addQuiz", ({ quizId, title, options, answer, countdown }: {
