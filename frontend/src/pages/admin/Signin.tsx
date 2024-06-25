@@ -1,20 +1,21 @@
-import { useState } from "react";
-import Input from "../../components/Input";
-import Button from "../../components/Button";
+import { useEffect, useState } from "react";
+import Input from "../../components/Input.tsx";
+import Button from "../../components/Button.tsx";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useSetRecoilState } from "recoil";
 import { AdminInfo, adminInfo } from "../../store/admin.ts";
-import { useSocket } from "../../lib/hooks";
+import { useSocket } from "../../lib/hooks.ts";
 import { Socket } from "socket.io-client";
 import { adminRegisterInput } from "../../zod/adminValidation.ts";
+import Cookies from 'js-cookie'
 
-export default function Register() {
+export default function Signin() {
    const [username, setUsername] = useState("");
    const [password, setPassword] = useState("");
    const navigate = useNavigate();
    const setAdminInfo = useSetRecoilState<AdminInfo>(adminInfo);
-   const socket: Socket = useSocket("");
+   const socket: Socket = useSocket("Bearer ");
    const [error, setError] = useState("");
 
    const onClickHandler = () => {
@@ -29,33 +30,57 @@ export default function Register() {
          return;
       }
 
-      socket.emit("RegisterAdmin", {
+      socket.emit("SigninAdmin", {
          username,
          password
-      }, ({ status, message }: { status: string, message: string }) => {
-         if (status === "error") {
-            toast(message, {
-               className: "bg-gray-950 text-white",
-               duration: 5000,
-               icon: <ErrorIcons />
-            })
-         } else {
-            toast.success(message, {
-               duration: 5000,
-            })
-            navigate("/admin/room")
-         }
+      });
+   }
+
+   useEffect(() => {
+      if (Cookies.get('token')) {
+         navigate('/admin/room')
+      }
+      socket.on("error", ({ error }: { error: string }) => {
+         toast(error, {
+            className: "bg-gray-950 text-white",
+            duration: 5000,
+            icon: <ErrorIcons />
+         })
       });
 
-      // setAdminInfo({
-      //    username,
-      //    currentRoom: {
-      //       id: '',
-      //       noOfProblems: 0
-      //    }
-      // });
-      // navigate("/admin/room");
-   }
+      socket.on("signed", ({ message, data, token }: {
+         message: string,
+         data: AdminInfo,
+         token: string
+      }) => {
+         setAdminInfo({
+            id: data.id,
+            username: data.username,
+            image: data.image
+         })
+         // set the cookie
+         Cookies.set('token', token, {
+            expires: 5,
+            secure: true,
+            sameSite: 'Strict'
+         });
+
+         // set the admin info in localStorage
+         localStorage.setItem("admin-info", JSON.stringify(data));
+
+         toast(message, {
+            className: "bg-gray-950 text-white",
+            duration: 5000,
+            icon: <ErrorIcons />
+         })
+         navigate("/admin/room");
+      })
+
+      return () => {
+         socket.off("error")
+         socket.off("signed")
+      }
+   }, [socket, setAdminInfo, navigate])
 
    return <div className="flex justify-center h-screen items-center">
       <div className="w-[500px] border border-gray-200 shadow-md px-10 py-14 rounded-lg">

@@ -5,6 +5,7 @@ import { IoManager } from "./IoManager";
 import { generateRandomString } from "../lib/randomStrings";
 import prisma from "../db";
 import { generateToken } from "../lib/generateToken";
+import { Leaderboard } from "../lib/types/types";
 
 export enum Status {
    Waiting = "waiting",
@@ -55,11 +56,11 @@ export class AdminManager {
       };
    }
 
-   async addRoom(roomName: string, adminId: string, socket: Socket) {
+   async addRoom(roomName: string, socket: Socket) {
       const room = await prisma.room.findFirst({
          where: {
             name: roomName,
-            adminId: adminId
+            adminId: socket.decoded.id
          }
       });
       // const room = this.rooms.find((room: Room) => room.name === roomName && room.admin === admin);
@@ -71,7 +72,7 @@ export class AdminManager {
          //    roomId: ""
          // };
          socket.emit("error", {
-            error: `${roomName} Room is already exist`
+            message: `${roomName} Room is already exist`
          })
          return;
       }
@@ -82,7 +83,7 @@ export class AdminManager {
             data: {
                id: roomId,
                name: roomName,
-               adminId,
+               adminId: socket.decoded.id,
             }
          });
          const quiz = await prisma.quiz.create({
@@ -95,6 +96,20 @@ export class AdminManager {
             roomId: newRoom.id,
             quizId: quiz.id
          })
+
+         const rooms = await prisma.room.findMany({
+            where: {
+               adminId: socket.decoded.id
+            },
+            select: {
+               id: true,
+               name: true,
+               status: true,
+               createdAt: true,
+               quizes: true
+            }
+         });
+         socket.emit("getMyRooms", rooms);
       } catch (e: any) {
          socket.emit("error", {
             error: `${roomName} Room is already exist`
@@ -117,23 +132,41 @@ export class AdminManager {
       // };
    }
 
-   async registerAdmin(username: string, password: string, socket: Socket) {
+   async getRoom(socket: Socket) {
+      const rooms = await prisma.room.findMany({
+         where: {
+            adminId: socket.decoded.id
+         },
+         select: {
+            id: true,
+            name: true,
+            status: true,
+            createdAt: true,
+            quizes: true
+         }
+      });
+      return rooms;
+   }
+
+   async registerAdmin(username: string, password: string) {
       try {
          const result = await prisma.admin.create({
             data: {
-               username,
-               password
+               username: username,
+               password: password,
+               image: Math.floor(Math.random() * 7) + 1
             }
          });
          console.log(result)
-         socket.emit("resultAdmin", {
-            id: result.id,
-            username: result.username
-         })
+         return {
+            status: 'success',
+            message: "Username are successfully register"
+         }
       } catch (e: any) {
-         socket.emit("error", {
-            error: "Email / Username is already taken"
-         })
+         return {
+            status: 'error',
+            message: "Email / Username is already taken"
+         }
       }
    }
 
@@ -141,18 +174,24 @@ export class AdminManager {
       try {
          const admin = await prisma.admin.findFirst({
             where: {
-               username: username
+               username: username,
+               password: password
             }
          });
 
          if (!admin) {
             socket.emit("error", {
-               error: "Admin doesn't found"
+               error: "Username is not found"
             });
             return;
          } else {
             socket.emit("signed", {
                message: "You've successfully login",
+               data: {
+                  id: admin.id,
+                  username: admin.username,
+                  image: admin.image
+               },
                token: `Bearer ${generateToken({ adminId: admin.id, username: admin.username })}`
             })
          }

@@ -6,6 +6,7 @@ import AddRoom from "./pages/admin/AddRoom"
 import AddProblem from "./pages/admin/AddProblem"
 import { RecoilRoot } from "recoil"
 import Started from "./pages/admin/Started"
+import Signin from "./pages/admin/Signin"
 
 const router = createBrowserRouter([
    {
@@ -24,6 +25,10 @@ const router = createBrowserRouter([
          {
             path: "register", // Change to "/register"
             element: <Register />
+         },
+         {
+            path: "signin", // Change to "/register"
+            element: <Signin />
          },
          {
             path: "room",

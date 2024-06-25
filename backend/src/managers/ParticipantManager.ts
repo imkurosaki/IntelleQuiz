@@ -1,6 +1,7 @@
 import { Socket } from "socket.io";
 import prisma from "../db";
 import { IoManager } from "./IoManager";
+import { generateToken } from "../lib/generateToken";
 
 export const MAX_TIME_SEC = 10;
 const MAXPOINTS = 200;
@@ -27,7 +28,7 @@ export class ParticipantManager {
       }
    }
 
-   async singinUser(username: string, password: string, socket: Socket) {
+   async signinUser(username: string, password: string, socket: Socket) {
       try {
          const user = await prisma.participant.findFirst({
             where: {
@@ -44,7 +45,13 @@ export class ParticipantManager {
          }
 
          socket.emit("signed", {
-            user
+            message: "You've successfully login",
+            user: {
+               id: user.id,
+               username: user.username,
+               image: user.image
+            },
+            token: `Bearer ${generateToken({ userId: user.id, username: user.username })}`
          })
       } catch (e: any) {
          socket.emit("error", {

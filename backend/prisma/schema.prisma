@@ -31,6 +31,7 @@ model Admin {
    password  String
    createdAt DateTime @default(now())
    updatedAt DateTime @updatedAt
+   image     Int
 
    rooms Room[]
 }

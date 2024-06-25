@@ -1,18 +1,19 @@
 import { Socket } from "socket.io";
 import jwt from "jsonwebtoken"
+import prisma from "../db";
 
 interface DecodeToken {
    id: string,
-   username: string
 }
 
 declare module 'socket.io' {
    interface Socket {
-      decoded?: DecodeToken;
+      decoded: DecodeToken;
    }
 }
 
 export const authMiddleware = async (socket: Socket, next: (err?: Error) => void) => {
+   console.log('authMiddleware')
    const tokenToVerify: string = socket.handshake.auth.token?.split("Bearer ")[1];
 
    console.log(tokenToVerify)
@@ -32,7 +33,20 @@ export const authMiddleware = async (socket: Socket, next: (err?: Error) => void
          return next(new Error('Unauthorized token'));
       }
 
-      socket.decoded = decodedPayload as DecodeToken;
+      const isAdminIdExist: { id: string } | null = await prisma.admin.findFirst({
+         where: {
+            id: decodedPayload.adminId
+         },
+         select: {
+            id: true
+         }
+      })
+
+      if (!isAdminIdExist) {
+         return next(new Error('Unauthorized token'))
+      }
+
+      socket.decoded = { id: isAdminIdExist.id }
       next();
    } catch (err: any) {
       return next(new Error('Unauthorized token'));

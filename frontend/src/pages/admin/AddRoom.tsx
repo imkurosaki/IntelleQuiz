@@ -11,15 +11,17 @@ import { AdminInfo, adminInfo } from "../../store/admin.ts";
 import { useRecoilState } from "recoil";
 import Modal from "../../components/Modal";
 import { adminAddRoomInput } from "../../zod/adminValidation.ts";
+import Cookies from 'js-cookie'
 
 export default function AddRoom() {
    const [disable, setDisable] = useState(true);
    const [roomId, setRoomId] = useState("");
    const [roomName, setRoomName] = useState("");
    const navigate = useNavigate();
-   const socket: Socket = useSocket();
+   const socket: Socket = useSocket(Cookies.get('token') || "Bearer ");
    const [adminInfoAtom, setAdminInfoAtom] = useRecoilState<AdminInfo>(adminInfo);
    const [error, setError] = useState("");
+   const [rooms, setRooms]: any = useState([]);
 
    const submitHandler = () => {
       const validation: any = adminAddRoomInput.safeParse({ roomName });
@@ -34,54 +36,93 @@ export default function AddRoom() {
          return;
       }
 
-      if (!roomName) {
-         toast("Please enter a roomName", {
-            className: "bg-gray-950 text-white",
-            duration: 5000,
-            icon: <ErrorIcons />
-         })
-         return;
-      }
+      // if (!roomName) {
+      //    toast("Please enter a roomName", {
+      //       className: "bg-gray-950 text-white",
+      //       duration: 5000,
+      //       icon: <ErrorIcons />
+      //    })
+      //    return;
+      // }
       setDisable(false);
 
-      socket.emit("addRoom", {
-         roomName
+      socket.emit("addRoom", { roomName }, ({ status, message }: {
+         status: string,
+         message: string
+      }) => {
+         if (status === "error") {
+            toast(message, {
+               className: "bg-gray-950 text-white",
+               duration: 5000,
+               icon: <ErrorIcons />
+            });
+         }
       })
    }
 
    useEffect(() => {
-      socket.on("error", ({ error }: { error: string }) => {
-         toast(error, {
+      // check if there is a cookie
+      if (!Cookies.get('token')) {
+         navigate('/admin/signin')
+      }
+
+      socket.on("error", ({ message }: { message: string }) => {
+         toast(message, {
             className: "bg-gray-950 text-white",
             duration: 5000,
             icon: <ErrorIcons />
          })
       });
 
-      socket.on("room", ({ message, roomId }: {
+      socket.on("getMyRooms", (rooms: {
+         id: string,
+         name: string,
+         status: string,
+         createdAt: Date,
+         quizes: any
+      }[]) => {
+         console.log(rooms)
+         setRooms(rooms);
+      });
+
+      socket.on("room", ({ message, roomId, quizId }: {
          message: string,
-         roomId: string
+         roomId: string,
+         quizId: string
       }) => {
          toast.success(message, {
             duration: 5000
          });
-         setRoomId(roomId)
-         setAdminInfoAtom({
-            username: adminInfoAtom.username,
-            currentRoom: {
-               id: roomId,
-               noOfProblems: 0
-            }
-         })
+         // setRoomId(roomId)
+         // setAdminInfoAtom({
+         //    username: adminInfoAtom.username,
+         //    currentRoom: {
+         //       id: roomId,
+         //       noOfProblems: 0
+         //    }
+         // })
+         console.log(message)
+      })
+
+      socket.emit("getMyRooms", {}, (rooms: {
+         id: string,
+         name: string,
+         status: string,
+         createdAt: Date,
+         quizes: any
+      }[]) => {
+         setRooms(rooms);
       })
 
       return () => {
          socket.off("error");
          socket.off("room");
+         socket.off("getRoom")
       };
-   }, [socket])
+   }, [socket, navigate])
 
    return <div className="flex justify-center h-screen items-center">
+      {JSON.stringify(rooms)}
       <div className="w-[500px] border border-gray-200 shadow-md px-10 py-14 rounded-lg">
          <div>
             <p className="mb-4">Room Name</p>

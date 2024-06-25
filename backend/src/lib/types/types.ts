@@ -1,6 +1,6 @@
 
 
-type Leaderboard = {
+export interface Leaderboard {
    points: number,
    participant: {
       id: string,
@@ -8,3 +8,8 @@ type Leaderboard = {
       image: number
    }
 }
+
+export interface RegisterResponse {
+   status: string,
+   message: string
+}  
