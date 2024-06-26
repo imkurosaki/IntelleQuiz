@@ -4,18 +4,21 @@ import { useSocket } from "../../lib/hooks";
 import { AdminInfo, adminInfo } from "../../store/admin.ts";
 import { useNavigate } from "react-router-dom";
 import { Socket } from "socket.io-client";
+import Cookies from 'js-cookie';
 
-
-export default function QuizControl({ isReady }: {
-   isReady: boolean
+export default function QuizControl({ isReady, quiId, roomId }: {
+   isReady: boolean,
+   quiId: string,
+   roomId: string
 }) {
-   const socket: Socket = useSocket();
-   const adminInfoAtom = useRecoilValue<AdminInfo>(adminInfo);
+   const socket: Socket = useSocket(Cookies.get('token') || "Bearer ");
+   // const adminInfoAtom = useRecoilValue<AdminInfo>(adminInfo);
    const navigate = useNavigate();
 
    const startAutomatically = () => {
       socket.emit("start-automatically", {
-         roomId: adminInfoAtom.currentRoom.id
+         roomId,
+         quiId
       });
       navigate("started");
    }
@@ -23,7 +26,8 @@ export default function QuizControl({ isReady }: {
    const startManually = () => {
       console.log("asdasd")
       socket.emit("start", {
-         roomId: adminInfoAtom.currentRoom.id
+         roomId,
+         quiId
       });
       navigate("started");
    }

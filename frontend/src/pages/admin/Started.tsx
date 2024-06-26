@@ -10,6 +10,7 @@ import { AdminInfo, adminInfo } from "../../store/admin.ts";
 import Modal from "../../components/Modal";
 import { useNavigate } from "react-router-dom";
 import EndRoom from "../../components/Room/EndRoom";
+import Cookies from 'js-cookie';
 
 export type AdminProblem = {
    roomId: string;
@@ -21,7 +22,7 @@ export type AdminProblem = {
 }
 
 export default function Started() {
-   const socket: Socket = useSocket();
+   const socket: Socket = useSocket(Cookies.get('token') || "Bearer ");
    const [problem, setProblem] = useState<AdminProblem>({
       id: "",
       roomId: "",
@@ -43,13 +44,13 @@ export default function Started() {
 
    useEffect(() => {
       console.log("started log")
-      if (!adminInfoAtom.username) {
-         navigate('admin/register');
-      }
+      // if (!adminInfoAtom.username) {
+      //    navigate('admin/register');
+      // }
 
-      if (!adminInfoAtom.currentRoom.id) {
-         navigate('admin/room');
-      }
+      // if (!adminInfoAtom.currentRoom.id) {
+      //    navigate('admin/room');
+      // }
 
       socket.on("adminProblem", ({ problem, status, index }: {
          problem: AdminProblem,

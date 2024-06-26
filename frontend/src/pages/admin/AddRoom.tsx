@@ -12,6 +12,7 @@ import { useRecoilState } from "recoil";
 import Modal from "../../components/Modal";
 import { adminAddRoomInput } from "../../zod/adminValidation.ts";
 import Cookies from 'js-cookie'
+import RoomCard from "../../components/RoomCard.tsx";
 
 export default function AddRoom() {
    const [disable, setDisable] = useState(true);
@@ -85,24 +86,24 @@ export default function AddRoom() {
          setRooms(rooms);
       });
 
-      socket.on("room", ({ message, roomId, quizId }: {
-         message: string,
-         roomId: string,
-         quizId: string
-      }) => {
-         toast.success(message, {
-            duration: 5000
-         });
-         // setRoomId(roomId)
-         // setAdminInfoAtom({
-         //    username: adminInfoAtom.username,
-         //    currentRoom: {
-         //       id: roomId,
-         //       noOfProblems: 0
-         //    }
-         // })
-         console.log(message)
-      })
+      // socket.on("room", ({ message, roomId, quizId }: {
+      //    message: string,
+      //    roomId: string,
+      //    quizId: string
+      // }) => {
+      //    toast.success(message, {
+      //       duration: 5000
+      //    });
+      //    // setRoomId(roomId)
+      //    // setAdminInfoAtom({
+      //    //    username: adminInfoAtom.username,
+      //    //    currentRoom: {
+      //    //       id: roomId,
+      //    //       noOfProblems: 0
+      //    //    }
+      //    // })
+      //    console.log(message)
+      // })
 
       socket.emit("getMyRooms", {}, (rooms: {
          id: string,
@@ -116,46 +117,58 @@ export default function AddRoom() {
 
       return () => {
          socket.off("error");
-         socket.off("room");
+         // socket.off("room");
          socket.off("getRoom")
       };
    }, [socket, navigate])
 
-   return <div className="flex justify-center h-screen items-center">
-      {JSON.stringify(rooms)}
-      <div className="w-[500px] border border-gray-200 shadow-md px-10 py-14 rounded-lg">
-         <div>
-            <p className="mb-4">Room Name</p>
-            <div className={`${error !== "" ? "block vibrate" : "hidden"} border border-gray-400 rounded-lg text-center py-3 px-2 my-4 bg-red-700 text-sm text-white w-full shadow-lg`}>{error}</div>
-            <Input
-               type="text"
-               placeholder="Enter room name"
-               onChange={(e: any) => {
-                  setRoomName(e.target.value);
-               }}
-            />
+   return <div className="px-20 py-16">
+      <div className="w-[500px]">
+         <div className="border border-gray-200 shadow-md px-10 py-14 rounded-lg">
+            <div>
+               <p className="mb-4">Room Name</p>
+               <div className={`${error !== "" ? "block vibrate" : "hidden"} border border-gray-400 rounded-lg text-center py-3 px-2 my-4 bg-red-700 text-sm text-white w-full shadow-lg`}>{error}</div>
+               <Input
+                  type="text"
+                  placeholder="Enter room name"
+                  onChange={(e: any) => {
+                     setRoomName(e.target.value);
+                  }}
+               />
+            </div>
+            {/* <Accordion title="Room Id" roomId={roomId} /> */}
+            <div className="flex justify-end mt-8 gap-4">
+               <Button
+                  onClick={submitHandler}
+                  className="py-2 px-4 text-white rounded-lg border-2 border-gray-200"
+               >
+                  Submit
+               </Button>
+               {/* <Button */}
+               {/*    onClick={() => { */}
+               {/*       if (!roomId) { */}
+               {/*          console.log("error dont have roomId") */}
+               {/*          return; */}
+               {/*       } */}
+               {/*       navigate(roomId); */}
+               {/*    }} */}
+               {/*    className="py-2 px-4 text-white rounded-lg border border-gray-100" */}
+               {/*    disabled={disable} */}
+               {/* > */}
+               {/*    Next */}
+               {/* </Button> */}
+            </div>
          </div>
-         <Accordion title="Room Id" roomId={roomId} />
-         <div className="flex justify-end mt-8 gap-4">
-            <Button
-               onClick={submitHandler}
-               className="py-2 px-4 text-white rounded-lg border-2 border-gray-200"
-            >
-               Submit
-            </Button>
-            <Button
-               onClick={() => {
-                  if (!roomId) {
-                     console.log("error dont have roomId")
-                     return;
-                  }
-                  navigate(roomId);
-               }}
-               className="py-2 px-4 text-white rounded-lg border border-gray-100"
-               disabled={disable}
-            >
-               Next
-            </Button>
+      </div>
+      <div className="mt-16">
+         <div className="grid grid-cols-4 gap-6">
+            {rooms.map((room: any, key: number) => {
+               return <div key={key} onClick={() => {
+                  navigate(`${room.id}`)
+               }}>
+                  <RoomCard name={room.name} status={room.status} />
+               </div>
+            })}
          </div>
       </div>
    </div>

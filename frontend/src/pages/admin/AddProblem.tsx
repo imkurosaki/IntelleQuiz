@@ -9,23 +9,34 @@ import Button from "../../components/Button";
 import { toast } from "sonner";
 import { ErrorIcons } from "./Register";
 import QuizControl from "./QuizControl";
+import Cookies from 'js-cookie'
 
 export default function AddProblem() {
-   // const { roomIdParams } = useParams();
-   const socket: Socket = useSocket();
+   const { roomIdParams } = useParams();
+   const socket: Socket = useSocket(Cookies.get('token') || "Bearer ");
    const navigate = useNavigate();
-   const [adminInfoAtom, setAdminInfoAtom] = useRecoilState<AdminInfo>(adminInfo);
+   // const [adminInfoAtom, setAdminInfoAtom] = useRecoilState<AdminInfo>(adminInfo);
    const [count, setCount] = useState(4);
    const [options, setOptions] = useState(["", "", "", ""]);
    const [title, setTitle] = useState("");
    const answer = useRef<number>(0);
    const countdown = useRef<number>(10);
    const isReady = useRef<boolean>(true);
+   const [quizId, setQuizId] = useState("");
+   const [roomId, setRoomId] = useState("");
 
    useEffect(() => {
-      if (!adminInfoAtom.currentRoom.id || !adminInfoAtom.username) {
-         navigate('admin/register');
-      }
+      // if (!roomIdParams || !adminInfoAtom.username) {
+      //    navigate('admin/register');
+      // }
+      socket.emit("roomId", { roomId: roomIdParams }, (data: any) => {
+         if (data.status === "error") {
+            navigate('/admin/room');
+            return;
+         }
+         setQuizId(data.quizes[0].id);
+         setRoomId(data.quizes[0].roomId);
+      })
 
       socket.on("success", ({ message }: {
          message: string
@@ -35,10 +46,19 @@ export default function AddProblem() {
          })
       })
 
+      socket.on("error", ({ message }: { message: string }) => {
+         toast(message, {
+            className: "bg-gray-950 text-white",
+            duration: 5000,
+            icon: <ErrorIcons />
+         })
+      });
+
       return () => {
          socket.off("success")
+         socket.off("error")
       };
-   }, [adminInfoAtom, navigate, socket]);
+   }, [navigate, socket, roomIdParams]);
 
    const addProblemHandler = (choice: number, problem: string) => {
       const newOptions: string[] = [...options];
@@ -93,7 +113,7 @@ export default function AddProblem() {
       console.log(options)
 
       socket.emit("addQuiz", {
-         roomId: adminInfoAtom.currentRoom.id,
+         quizId,
          title,
          options,
          answer: answer.current,
@@ -101,19 +121,19 @@ export default function AddProblem() {
       })
       setOptions(["", "", "", ""])
       setTitle("")
-      setAdminInfoAtom({
-         username: adminInfoAtom.username,
-         currentRoom: {
-            id: adminInfoAtom.currentRoom.id,
-            noOfProblems: adminInfoAtom.currentRoom.noOfProblems + 1
-         }
-      })
+      // setAdminInfoAtom({
+      //    username: adminInfoAtom.username,
+      //    currentRoom: {
+      //       id: adminInfoAtom.currentRoom.id,
+      //       noOfProblems: adminInfoAtom.currentRoom.noOfProblems + 1
+      //    }
+      // })
       isReady.current = false;
    }
 
    return <div className="flex justify-center">
       <div className="w-[1000px] py-20">
-         <p className="text-sm text-gray-500">Room Id: <span className="px-4 py-1 bg-gray-200 text-xs text-gray-700 rounded-md border border-gray-300">{adminInfoAtom.currentRoom.id}</span></p>
+         <p className="text-sm text-gray-500">Room Id: <span className="px-4 py-1 bg-gray-200 text-xs text-gray-700 rounded-md border border-gray-300">{roomIdParams}</span></p>
          <div className="mt-12">
             <p className="mb-2">Problem Title</p>
             <Input
@@ -168,7 +188,7 @@ export default function AddProblem() {
             </div>
          </div>
          <div className="mt-12">
-            <QuizControl isReady={isReady.current} />
+            <QuizControl isReady={isReady.current} quiId={quizId} roomId={roomId} />
          </div>
       </div>
    </div>

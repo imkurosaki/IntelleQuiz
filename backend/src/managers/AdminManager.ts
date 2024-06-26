@@ -132,7 +132,27 @@ export class AdminManager {
       // };
    }
 
-   async getRoom(socket: Socket) {
+   async getRoom(socket: Socket, roomId: string) {
+      try {
+         const room = await prisma.room.findUnique({
+            where: {
+               id: roomId,
+               adminId: socket.decoded.id
+            },
+            select: {
+               quizes: true
+            }
+         });
+         return room;
+      } catch (e: any) {
+         return {
+            status: 'error',
+            message: "Room doesn't exist"
+         }
+      }
+   }
+
+   async getRooms(socket: Socket) {
       const rooms = await prisma.room.findMany({
          where: {
             adminId: socket.decoded.id
@@ -314,7 +334,7 @@ export class AdminManager {
          })
       } catch (e: any) {
          socket.emit("error", {
-            error: "Failed to add problem"
+            message: "Failed to add problem"
          })
       }
    }

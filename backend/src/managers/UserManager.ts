@@ -92,6 +92,13 @@ export class UserManager {
          });
       })
 
+      socket.on("roomId", async ({ roomId }: {
+         roomId: string
+      }, callback: CallableFunction) => {
+         const room = await this.adminManager.getRoom(socket, roomId)
+         return callback(room);
+      })
+
       socket.on("getMyRooms", ({ }, callback: CallableFunction) => {
          // middleware
          authMiddleware(socket, async (err: any) => {
@@ -103,7 +110,7 @@ export class UserManager {
                   message: "Authentication error"
                })
             }
-            const room = await this.adminManager.getRoom(socket);
+            const room = await this.adminManager.getRooms(socket);
             return callback(room);
          });
       });

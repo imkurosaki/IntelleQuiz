@@ -12,6 +12,7 @@ import { Socket } from "socket.io-client";
 import { ParticipantInfo, participantInfo, userJoinInfo } from "../store/participant";
 import { useRecoilState, useRecoilValue } from "recoil";
 import JoinPage from "../components/Room/JoinPage";
+import Cookies from "js-cookie";
 
 export default function Room() {
    const { roomIdParams } = useParams();
@@ -36,7 +37,7 @@ export default function Room() {
       points: 0
    })
    const [noOfProblems, setNoOfProblems] = useState(0);
-   const socket: Socket = useSocket();
+   const socket: Socket = useSocket(Cookies.get('token') || "Bearer ");
    const [participantInfoAtom, setParticipantAtom] = useRecoilState(participantInfo);
    const userJoinInfoAtom = useRecoilValue(userJoinInfo);
 
