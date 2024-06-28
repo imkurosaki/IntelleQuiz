@@ -1,20 +1,21 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useSetRecoilState } from "recoil";
 import { AdminInfo, adminInfo } from "../../store/admin.ts";
 import { useSocket } from "../../lib/hooks";
 import { Socket } from "socket.io-client";
 import { adminRegisterInput } from "../../zod/adminValidation.ts";
+import Cookies from 'js-cookie';
 
 export default function Register() {
    const [username, setUsername] = useState("");
    const [password, setPassword] = useState("");
    const navigate = useNavigate();
-   const setAdminInfo = useSetRecoilState<AdminInfo>(adminInfo);
-   const socket: Socket = useSocket("");
+   // const setAdminInfo = useSetRecoilState<AdminInfo>(adminInfo);
+   const socket: Socket = useSocket("Bearer ");
    const [error, setError] = useState("");
 
    const onClickHandler = () => {
@@ -43,7 +44,7 @@ export default function Register() {
             toast.success(message, {
                duration: 5000,
             })
-            navigate("/admin/room")
+            navigate("/admin/signin")
          }
       });
 
@@ -57,9 +58,15 @@ export default function Register() {
       // navigate("/admin/room");
    }
 
+   useEffect(() => {
+      if (Cookies.get('token')) {
+         navigate('/admin/room')
+      }
+   }, [navigate]);
+
    return <div className="flex justify-center h-screen items-center">
       <div className="w-[500px] border border-gray-200 shadow-md px-10 py-14 rounded-lg">
-         <div>
+         <div className="flex flex-col gap-6">
             <div className={`${error !== "" ? "block vibrate" : "hidden"} border border-gray-400 rounded-lg text-center py-3 px-2 my-4 bg-red-700 text-sm text-white w-full shadow-lg`}>{error}</div>
             <div>
                <p className="mb-4">Username</p>
@@ -82,13 +89,17 @@ export default function Register() {
                />
             </div>
          </div>
-         <div className="flex justify-end mt-8">
+         <div className="flex flex-col text-end gap-3 mt-8">
             <Button
                onClick={onClickHandler}
                className="py-3 px-4 text-white rounded-lg border-2 border-gray-200"
             >
                Register
             </Button>
+            <Link
+               to={'/admin/signin'}
+               className="text-sm hover:underline"
+            >Have already an account? Signin here</Link>
          </div>
       </div>
    </div>

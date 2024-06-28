@@ -7,21 +7,30 @@ import AddProblem from "./pages/admin/AddProblem"
 import { RecoilRoot } from "recoil"
 import Started from "./pages/admin/Started"
 import Signin from "./pages/admin/Signin"
+import FindRoom from "./components/Room/FindRoom"
 
 const router = createBrowserRouter([
-   {
-      path: "/room",
-      element: <Room />,
-      children: [
-         {
-            path: ":roomIdParams",
-            element: <Room />
-         }
-      ]
-   },
+   // {
+   //    path: "/room",
+   //    element: <Room />,
+   //    children: [
+   //       {
+   //          path: ":roomIdParams",
+   //          element: <Room />
+   //       }
+   //    ]
+   // },
    {
       path: "/admin",
       children: [
+         {
+            path: "findRoom",
+            element: <FindRoom />
+         },
+         {
+            path: "findRoom/:roomIdParams",
+            element: <Room />
+         },
          {
             path: "register", // Change to "/register"
             element: <Register />
@@ -41,7 +50,7 @@ const router = createBrowserRouter([
          {
             path: "room/:roomIdParams/started",
             element: <Started />
-         }
+         },
       ]
    }
 ])

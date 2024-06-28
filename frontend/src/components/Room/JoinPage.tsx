@@ -5,17 +5,22 @@ import { participantInfo, userJoinInfo } from "../../store/participant";
 import { useEffect, useState } from "react";
 import { Socket } from "socket.io-client";
 import { joinInput } from "../../zod/userValidation";
+import { toast } from "sonner";
+import { ErrorIcons } from "../../pages/admin/Register";
+import { useNavigate } from "react-router-dom";
+import { currentRoomJoined } from "../../store/admin";
 
 export default function JoinPage({ socket }: {
    socket: Socket
 }) {
-   const [username, setUsername] = useState("");
    const [roomId, setRoomId] = useState("");
-   const setUserJoinInfo = useSetRecoilState(userJoinInfo);
+   // const setUserJoinInfo = useSetRecoilState(userJoinInfo);
    const [error, setError] = useState("");
+   const navigate = useNavigate();
+   const setCurrentRoomJoinedState = useSetRecoilState(currentRoomJoined);
 
    const handleJoinSubmit = () => {
-      const validation: any = joinInput.safeParse({ roomId, username });
+      const validation: any = joinInput.safeParse({ roomId });
       if (!validation.success) {
          const errors: any = JSON.parse(validation.error.message);
          setError(errors[0].message);
@@ -26,19 +31,29 @@ export default function JoinPage({ socket }: {
          return;
       }
 
-      socket.emit("JoinUser", {
-         username,
+      socket.emit("JoinRoom", {
          roomId
-      })
+      }, (res: any) => {
+         if (res.status === "error") {
+            toast(res.message, {
+               className: "bg-gray-950 text-white",
+               duration: 5000,
+               icon: <ErrorIcons />
+            });
+            return;
+         }
+         setCurrentRoomJoinedState(res.data);
+         navigate(`/admin/findRoom/${roomId}`);
+      });
 
-      setUserJoinInfo({
-         roomId,
-         username
-      })
+      // setUserJoinInfo({
+      //    roomId,
+      //    username
+      // })
    }
 
-   return <div className="flex justify-center items-center h-screen w-full">
-      <div className="w-[300px]">
+   return <div className="flex w-full">
+      <div className="w-full">
          <div className="text-center">
             <p className="text-lg text-gray-700">Enter the code to join</p>
             <p className="text-sm text-gray-600">It's on the screen in front of you</p>
@@ -46,7 +61,6 @@ export default function JoinPage({ socket }: {
          <div className={`${error !== "" ? "block vibrate" : "hidden"} border border-gray-400 rounded-lg text-center py-3 px-2 mt-2 bg-red-700 text-sm text-white w-full shadow-lg`}>{error}</div>
          <div className="flex flex-col gap-3 mt-5">
             <Input placeholder="1234 5678" type="text" onChange={(e: any) => setRoomId(e.target.value)} />
-            <Input placeholder="Your name" type="text" onChange={(e: any) => setUsername(e.target.value)} />
          </div>
          <div className="px-10 mt-8">
             <Button

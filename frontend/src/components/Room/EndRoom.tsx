@@ -14,9 +14,9 @@ export default function EndRoom({ leaderboard }: {
             <p className="text-5xl mb-12">Leaderboard Results</p>
          </div>
          <div className="flex flex-col gap-3">
-            {leaderboard.map((participant: Participant, key: number) => {
+            {leaderboard.map((element: any, key: number) => {
                return <div key={key} className="flex items-center">
-                  <PointsUserCard key={key} id={participant.id} username={participant.username} points={participant.points} image={participant.image} />
+                  <PointsUserCard key={key} id={element.participant.id} username={element.participant.username} points={element.points} image={element.participant.image.toString()} />
                   {key === 0 ?
                      <img src={new URL(`../../assets/gold-medal.png`, import.meta.url).href} alt=""
                         className="w-12 ms-2 shake-left-right"

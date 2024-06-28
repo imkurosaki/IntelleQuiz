@@ -498,7 +498,7 @@ export class AdminManager {
                }
             });
 
-            await prisma.room.update({
+            const updateRoom = await prisma.room.update({
                where: {
                   id: roomId
                },
@@ -515,7 +515,7 @@ export class AdminManager {
                roomId: quiz.roomId,
                currentProblem: 1,
                noOfProblems: quiz.problems.length,
-               status: room.status
+               status: updateRoom.status
             });
 
             IoManager.io.to(roomId).emit("adminProblem", {
@@ -823,7 +823,6 @@ export class AdminManager {
                }
             }
          });
-
          if (!room?.quizes.length) {
             socket.emit("error", {
                message: `Quiz is not found`
@@ -835,7 +834,7 @@ export class AdminManager {
          socket.emit("noOfProblems", {
             problemsLength
          });
-
+         console.log(problemsLength)
          return problemsLength;
       } catch (e: any) {
          socket.emit("error", {

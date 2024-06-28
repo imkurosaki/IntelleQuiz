@@ -10,6 +10,8 @@ import { toast } from "sonner";
 import { ErrorIcons } from "./Register";
 import QuizControl from "./QuizControl";
 import Cookies from 'js-cookie'
+import Leaderboard from "../../components/Room/Leaderboard.tsx";
+import { CopyClipboard } from "../../components/Accordion.tsx";
 
 export default function AddProblem() {
    const { roomIdParams } = useParams();
@@ -24,15 +26,24 @@ export default function AddProblem() {
    const isReady = useRef<boolean>(true);
    const [quizId, setQuizId] = useState("");
    const [roomId, setRoomId] = useState("");
+   const [status, setStatus] = useState("");
+   const [leaderboard, setLeaderBoards] = useState<Participant[]>([])
 
    useEffect(() => {
       // if (!roomIdParams || !adminInfoAtom.username) {
       //    navigate('admin/register');
       // }
+      if (!Cookies.get('token')) {
+         navigate('/admin/signin')
+      }
+
       socket.emit("roomId", { roomId: roomIdParams }, (data: any) => {
          if (data.status === "error") {
             navigate('/admin/room');
             return;
+         }
+         if (data.status === "FINISHED") {
+            setStatus(data.status);
          }
          setQuizId(data.quizes[0].id);
          setRoomId(data.quizes[0].roomId);
@@ -46,6 +57,14 @@ export default function AddProblem() {
          })
       })
 
+      socket.on("leaderboard", ({ leaderboard, status }: {
+         leaderboard: Participant[],
+         status: string
+      }) => {
+         setStatus(status);
+         setLeaderBoards(leaderboard);
+      })
+
       socket.on("error", ({ message }: { message: string }) => {
          toast(message, {
             className: "bg-gray-950 text-white",
@@ -57,6 +76,7 @@ export default function AddProblem() {
       return () => {
          socket.off("success")
          socket.off("error")
+         socket.off("leaderboard")
       };
    }, [navigate, socket, roomIdParams]);
 
@@ -112,7 +132,7 @@ export default function AddProblem() {
       console.log(countdown.current)
       console.log(options)
 
-      socket.emit("addQuiz", {
+      socket.emit("addProblem", {
          quizId,
          title,
          options,
@@ -131,9 +151,16 @@ export default function AddProblem() {
       isReady.current = false;
    }
 
+   if (status === "FINISHED") {
+      return <Leaderboard leaderboard={leaderboard} />
+   }
+
    return <div className="flex justify-center">
       <div className="w-[1000px] py-20">
-         <p className="text-sm text-gray-500">Room Id: <span className="px-4 py-1 bg-gray-200 text-xs text-gray-700 rounded-md border border-gray-300">{roomIdParams}</span></p>
+         <div className="flex gap-3">
+            <p className="text-sm text-gray-500">Room Id: </p>
+            <CopyClipboard clipboard={roomId} />
+         </div>
          <div className="mt-12">
             <p className="mb-2">Problem Title</p>
             <Input
@@ -188,7 +215,7 @@ export default function AddProblem() {
             </div>
          </div>
          <div className="mt-12">
-            <QuizControl isReady={isReady.current} quiId={quizId} roomId={roomId} />
+            <QuizControl isReady={isReady.current} quizId={quizId} roomId={roomId} />
          </div>
       </div>
    </div>

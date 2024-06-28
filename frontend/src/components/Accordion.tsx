@@ -57,8 +57,8 @@ export function CopyClipboard({ clipboard }: {
    }
 
    return (
-      <div className="relative flex items-center justify-between text-gray-500 border border-gray-500 bg-gray-200 ps-8 pe-4 py-2 rounded-md">
-         <span className="font-mono text-sm">{clipboard || "No room id generated"}</span>
+      <div className="relative gap-4 flex items-center justify-between text-gray-500 border border-gray-500 bg-gray-200 px-4  py-1 rounded-md">
+         <span className="font-mono text-gray-950 text-xs">{clipboard || "No room id generated"}</span>
          <button onClick={handleCopyClick}>
             <CopyIcon className="h-5 w-5" />
          </button>

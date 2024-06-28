@@ -115,19 +115,45 @@ export class UserManager {
          });
       });
 
-      socket.on("addQuiz", ({ quizId, title, options, answer, countdown }: {
+      socket.on("deleteRoom", ({ roomId }: { roomId: string }, callback: CallableFunction) => {
+         authMiddleware(socket, async (err: any) => {
+            if (err) {
+               console.log(err);
+               return callback({
+                  status: 'error',
+                  message: "Authentication error"
+               })
+            }
+            const result: {
+               status: string,
+               message: string
+            } = await this.adminManager.deleteRoom(socket, roomId);
+            return callback(result)
+         })
+      })
+
+      socket.on("addProblem", ({ quizId, title, options, answer, countdown }: {
          title: string,
          options: string[],
          answer: number,
          countdown: number,
          quizId: string,
-      }) => {
+      }, callback: CallableFunction) => {
+         authMiddleware(socket, async (err: any) => {
+            if (err) {
+               console.log(err);
+               return callback({
+                  status: 'error',
+                  message: "Authentication error"
+               })
+            }
+            this.adminManager.addProblem(quizId, title, options, answer, countdown, socket)
+         })
          // const result: {
          //    error: boolean,
          //    message: string
          // } = this.adminManager.addProblem(roomId, quizId, title, options, answer, countdown)
 
-         this.adminManager.addProblem(quizId, title, options, answer, countdown, socket)
 
          // if (result.error) {
          //    socket.emit("error", {
@@ -148,7 +174,18 @@ export class UserManager {
       socket.on("start", ({ roomId, quizId }: {
          roomId: string,
          quizId: string,
-      }) => {
+      }, callback: CallableFunction) => {
+         authMiddleware(socket, async (err: any) => {
+            console.log("pre middleware")
+            if (err) {
+               console.log(err);
+               return callback({
+                  status: 'error',
+                  message: "Authentication error"
+               })
+            }
+            this.adminManager.start(roomId, quizId, socket);
+         });
          // join the admin roomId
          // const result: {
          //    error: boolean,
@@ -156,7 +193,6 @@ export class UserManager {
          //    countdown: number
          // } = this.adminManager.start(roomId);
 
-         this.adminManager.start(roomId, quizId, socket);
 
          // if (result.error) {
          //    socket.emit("error", {
@@ -207,14 +243,14 @@ export class UserManager {
                COUNTDOWN_TIMER = await this.adminManager.start(roomId, quizId, socket);
                this.adminManager.getLeaderboard(quizId, roomId, COUNTDOWN_TIMER);
             } else {
-               const result: any = this.adminManager.next(roomId, quizId, socket);
-               COUNTDOWN_TIMER = result.countdown;
+               COUNTDOWN_TIMER = await this.adminManager.next(roomId, quizId, socket);
+               console.log("COUNTDOWN_TIMER " + COUNTDOWN_TIMER)
                this.adminManager.getLeaderboard(quizId, roomId, COUNTDOWN_TIMER);
             }
             await new Promise(r => setTimeout(r, (COUNTDOWN_TIMER + SECONDS_DELAY) * 1000));
          }
          //end of the quiz
-         this.adminManager.endQuiz(roomId, quizId, socket);
+         await this.adminManager.endQuiz(roomId, quizId, socket);
       })
 
       socket.on("next", ({ roomId, quizId }: {
@@ -251,58 +287,149 @@ export class UserManager {
          // this.adminManager.getLeaderboard(roomId, 0);
       })
 
+      // socket.on("JoinRoom", ({ roomId }: {
+      //    roomId: string
+      // }, callback: CallableFunction) => {
+      //    authMiddleware(socket, async (err: any) => {
+      //       if (err) {
+      //          console.log(err);
+      //          return callback({
+      //             status: 'error',
+      //             message: "Authentication error"
+      //          });
+      //       }
+      //    });
+      // })
+
       socket.on("disconnect", () => {
          console.log("Admin is disconnected");
       })
 
-      socket.on("RegisterUser", ({ username, password }: {
-         username: string,
-         password: string,
-      }) => {
-         this.participantManager.registerUser(username, password, socket);
+      // socket.on("RegisterUser", ({ username, password }: {
+      //    username: string,
+      //    password: string,
+      // }) => {
+      //    this.participantManager.registerUser(username, password, socket);
+      // })
+
+      socket.on("JoinRoom", ({ roomId }: {
+         participantId: string,
+         roomId: string,
+      }, callback: CallableFunction) => {
+         authMiddleware(socket, async (err: any) => {
+            console.log("pre middleware")
+            if (err) {
+               console.log(err);
+               return callback({
+                  status: 'error',
+                  message: "Authentication error"
+               })
+            }
+            const result = await this.participantManager.joinRoom(roomId, socket);
+            console.log(result)
+            return callback(result);
+         });
       })
 
-      socket.on("SigninUser", ({ username, password }: {
-         username: string,
-         password: string,
-      }) => {
-         this.participantManager.signinUser(username, password, socket)
-
-         socket.on("JoinRoom", ({ participantId, roomId }: {
-            participantId: string,
-            roomId: string,
-         }) => {
-            this.participantManager.joinRoom(roomId, participantId, socket);
-
-            socket.on("Submit", ({ participantId, pointsId, roomId, quizId, problemId, answer }: {
-               participantId: string,
-               pointsId: string,
-               roomId: string,
-               quizId: string,
-               problemId: string,
-               answer: number,
-            }) => {
-               this.participantManager.submitAnswer(participantId, pointsId, roomId, quizId, problemId, answer, socket);
-            })
-
-            socket.on("NoOfProblems", ({ roomId, quizId }: {
-               roomId: string,
-               quizId: string
-            }) => {
-               this.adminManager.getNoOfProblems(roomId, quizId, socket);
-            })
-
-            socket.on("LeaveRoom", ({ roomId }: {
-               roomId: string
-            }) => {
-               socket.leave(roomId);
-            })
-         })
-
-         socket.on("disconnect", () => {
-            console.log("User disconnected")
+      socket.on("NoOfProblems", ({ roomId, quizId }: {
+         roomId: string,
+         quizId: string
+      }, callback: CallableFunction) => {
+         authMiddleware(socket, async (err: any) => {
+            console.log("premierwe")
+            if (err) {
+               console.log(err);
+               return callback({
+                  status: 'error',
+                  message: "Authentication error"
+               })
+            }
+            const problemsLength = await this.adminManager.getNoOfProblems(roomId, quizId, socket);
+            console.log(problemsLength)
+            return callback(problemsLength);
          })
       })
+
+      socket.on("Submit", ({ pointsId, roomId, quizId, problemId, answer }: {
+         pointsId: string,
+         roomId: string,
+         quizId: string,
+         problemId: string,
+         answer: number,
+      }, callback: CallableFunction) => {
+         authMiddleware(socket, async (err: any) => {
+            if (err) {
+               console.log(err);
+               return callback({
+                  status: 'error',
+                  message: "Authentication error"
+               })
+            }
+            await this.participantManager.submitAnswer(pointsId, roomId, quizId, problemId, answer, socket);
+         })
+      })
+
+      socket.on("GetRecentlyJoinedRooms", ({ }, callback: CallableFunction) => {
+         authMiddleware(socket, async (err: any) => {
+            if (err) {
+               console.log(err);
+               return callback({
+                  status: 'error',
+                  message: "Authentication error"
+               })
+            }
+            const rooms = await this.participantManager.getRecentlyJoinedRooms(socket);
+            return callback(rooms);
+         })
+      })
+
+      socket.on("LeaveRoom", ({ roomId }: {
+         roomId: string
+      }) => {
+         socket.leave(roomId);
+      })
+
+      // socket.on("SigninUser", ({ username, password }: {
+      //    username: string,
+      //    password: string,
+      // }) => {
+      //    // this.participantManager.signinUser(username, password, socket)
+      //
+      //    socket.on("JoinRoom", ({ roomId }: {
+      //       participantId: string,
+      //       roomId: string,
+      //    }) => {
+      //       this.participantManager.joinRoom(roomId, socket);
+      //
+      //       socket.on("Submit", ({ participantId, pointsId, roomId, quizId, problemId, answer }: {
+      //          participantId: string,
+      //          pointsId: string,
+      //          roomId: string,
+      //          quizId: string,
+      //          problemId: string,
+      //          answer: number,
+      //       }) => {
+      //          this.participantManager.submitAnswer(participantId, pointsId, roomId, quizId, problemId, answer, socket);
+      //       })
+      //
+      //       socket.on("NoOfProblems", ({ roomId, quizId }: {
+      //          roomId: string,
+      //          quizId: string
+      //       }) => {
+      //          this.adminManager.getNoOfProblems(roomId, quizId, socket);
+      //       })
+      //
+      //       socket.on("LeaveRoom", ({ roomId }: {
+      //          roomId: string
+      //       }) => {
+      //          socket.leave(roomId);
+      //       })
+      //    })
+      //
+      //    socket.on("disconnect", () => {
+      //       console.log("User disconnected")
+      //    })
+      // })
 
       // socket.on("JoinUser", ({ username, roomId }: {
       //    username: string;

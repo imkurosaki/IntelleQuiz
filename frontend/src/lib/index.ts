@@ -32,3 +32,7 @@ export const widthStyle = (points: number) => {
 
    return pointsString;
 }
+
+export const removeCookie = (cookieName: string) => {
+   document.cookie = cookieName + "=; expires=Thu, 01 Jan 1980 00:00:00 UTC; path=/";
+}

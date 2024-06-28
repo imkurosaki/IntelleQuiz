@@ -86,24 +86,13 @@ export default function AddRoom() {
          setRooms(rooms);
       });
 
-      // socket.on("room", ({ message, roomId, quizId }: {
-      //    message: string,
-      //    roomId: string,
-      //    quizId: string
-      // }) => {
-      //    toast.success(message, {
-      //       duration: 5000
-      //    });
-      //    // setRoomId(roomId)
-      //    // setAdminInfoAtom({
-      //    //    username: adminInfoAtom.username,
-      //    //    currentRoom: {
-      //    //       id: roomId,
-      //    //       noOfProblems: 0
-      //    //    }
-      //    // })
-      //    console.log(message)
-      // })
+      socket.on("room", ({ message }: {
+         message: string,
+      }) => {
+         toast.success(message, {
+            duration: 5000
+         });
+      })
 
       socket.emit("getMyRooms", {}, (rooms: {
          id: string,
@@ -117,8 +106,9 @@ export default function AddRoom() {
 
       return () => {
          socket.off("error");
-         // socket.off("room");
+         socket.off("room");
          socket.off("getRoom")
+         socket.off("getMyRooms")
       };
    }, [socket, navigate])
 
@@ -126,7 +116,7 @@ export default function AddRoom() {
       <div className="w-[500px]">
          <div className="border border-gray-200 shadow-md px-10 py-14 rounded-lg">
             <div>
-               <p className="mb-4">Room Name</p>
+               <p className="mb-4">Add Room</p>
                <div className={`${error !== "" ? "block vibrate" : "hidden"} border border-gray-400 rounded-lg text-center py-3 px-2 my-4 bg-red-700 text-sm text-white w-full shadow-lg`}>{error}</div>
                <Input
                   type="text"
@@ -142,7 +132,7 @@ export default function AddRoom() {
                   onClick={submitHandler}
                   className="py-2 px-4 text-white rounded-lg border-2 border-gray-200"
                >
-                  Submit
+                  Add
                </Button>
                {/* <Button */}
                {/*    onClick={() => { */}
@@ -163,10 +153,8 @@ export default function AddRoom() {
       <div className="mt-16">
          <div className="grid grid-cols-4 gap-6">
             {rooms.map((room: any, key: number) => {
-               return <div key={key} onClick={() => {
-                  navigate(`${room.id}`)
-               }}>
-                  <RoomCard name={room.name} status={room.status} />
+               return <div key={key}>
+                  <RoomCard name={room.name} roomId={room.id} status={room.status} socket={socket} />
                </div>
             })}
          </div>

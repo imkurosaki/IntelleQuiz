@@ -6,9 +6,9 @@ import { useNavigate } from "react-router-dom";
 import { Socket } from "socket.io-client";
 import Cookies from 'js-cookie';
 
-export default function QuizControl({ isReady, quiId, roomId }: {
+export default function QuizControl({ isReady, quizId, roomId }: {
    isReady: boolean,
-   quiId: string,
+   quizId: string,
    roomId: string
 }) {
    const socket: Socket = useSocket(Cookies.get('token') || "Bearer ");
@@ -18,7 +18,7 @@ export default function QuizControl({ isReady, quiId, roomId }: {
    const startAutomatically = () => {
       socket.emit("start-automatically", {
          roomId,
-         quiId
+         quizId
       });
       navigate("started");
    }
@@ -27,7 +27,7 @@ export default function QuizControl({ isReady, quiId, roomId }: {
       console.log("asdasd")
       socket.emit("start", {
          roomId,
-         quiId
+         quizId
       });
       navigate("started");
    }

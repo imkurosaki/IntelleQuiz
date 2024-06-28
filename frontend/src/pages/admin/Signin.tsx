@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import Input from "../../components/Input.tsx";
 import Button from "../../components/Button.tsx";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useSetRecoilState } from "recoil";
 import { AdminInfo, adminInfo } from "../../store/admin.ts";
 import { useSocket } from "../../lib/hooks.ts";
@@ -53,6 +53,7 @@ export default function Signin() {
          data: AdminInfo,
          token: string
       }) => {
+         console.log("signed")
          setAdminInfo({
             id: data.id,
             username: data.username,
@@ -66,7 +67,7 @@ export default function Signin() {
          });
 
          // set the admin info in localStorage
-         localStorage.setItem("admin-info", JSON.stringify(data));
+         setAdminInfo(data);
 
          toast(message, {
             className: "bg-gray-950 text-white",
@@ -84,7 +85,7 @@ export default function Signin() {
 
    return <div className="flex justify-center h-screen items-center">
       <div className="w-[500px] border border-gray-200 shadow-md px-10 py-14 rounded-lg">
-         <div>
+         <div className="flex flex-col gap-6">
             <div className={`${error !== "" ? "block vibrate" : "hidden"} border border-gray-400 rounded-lg text-center py-3 px-2 my-4 bg-red-700 text-sm text-white w-full shadow-lg`}>{error}</div>
             <div>
                <p className="mb-4">Username</p>
@@ -107,13 +108,17 @@ export default function Signin() {
                />
             </div>
          </div>
-         <div className="flex justify-end mt-8">
+         <div className="flex flex-col text-end gap-3 mt-8">
             <Button
                onClick={onClickHandler}
                className="py-3 px-4 text-white rounded-lg border-2 border-gray-200"
             >
-               Register
+               Sign In
             </Button>
+            <Link
+               to={'/admin/register'}
+               className="text-sm hover:underline"
+            >Don't an account yet? Register here</Link>
          </div>
       </div>
    </div>

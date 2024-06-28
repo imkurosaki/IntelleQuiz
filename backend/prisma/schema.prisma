@@ -13,17 +13,17 @@ datasource db {
    url      = env("DATABASE_URL")
 }
 
-model Participant {
-   id        String   @id @default(uuid())
-   username  String   @unique
-   password  String
-   createdAt DateTime @default(now())
-   updatedAt DateTime @updatedAt
-   image     Int
-
-   points Points[]
-   rooms  Room[]
-}
+// model Participant {
+//    id        String   @id @default(uuid())
+//    username  String   @unique
+//    password  String
+//    createdAt DateTime @default(now())
+//    updatedAt DateTime @updatedAt
+//    image     Int
+//
+//    points Points[]
+//    rooms  Room[]
+// }
 
 model Admin {
    id        String   @id @default(uuid())
@@ -33,20 +33,23 @@ model Admin {
    updatedAt DateTime @updatedAt
    image     Int
 
-   rooms Room[]
+   points       Points[]
+   joinedRooms  Room[]   @relation("UserRooms")
+   createdRooms Room[]   @relation("CreatedRooms")
 }
 
 model Room {
    id        String   @id
    name      String
    status    Status   @default(WAITING)
-   admin     Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
-   adminId   String
    createdAt DateTime @default(now())
    updatedAt DateTime @updatedAt
 
+   participants Admin[] @relation("UserRooms")
    quizes       Quiz[]
-   participants Participant[]
+   // participants Participant[]
+   adminId      String
+   admin        Admin   @relation("CreatedRooms", fields: [adminId], references: [id], onDelete: Cascade)
 }
 
 model Quiz {
@@ -64,8 +67,10 @@ model Points {
    id     String @id @default(uuid())
    points Int    @default(0)
 
-   participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+   participant   Admin  @relation(fields: [participantId], references: [id], onDelete: Cascade)
    participantId String
+   // admin   Admin  @relation(fields: [adminId], references: [id], onDelete: Cascade)
+   // adminId String
 
    quiz   Quiz   @relation(fields: [quizId], references: [id], onDelete: Cascade)
    quizId String
