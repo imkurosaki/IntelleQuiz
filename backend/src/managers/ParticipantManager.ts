@@ -1,65 +1,11 @@
 import { Socket } from "socket.io";
 import prisma from "../db";
 import { IoManager } from "./IoManager";
-import { generateToken } from "../lib/generateToken";
-import { decode } from "jsonwebtoken";
 
 export const MAX_TIME_SEC = 10;
 const MAXPOINTS = 200;
 
 export class ParticipantManager {
-
-   // async registerUser(username: string, password: string, socket: Socket) {
-   //    try {
-   //       const result = await prisma.participant.create({
-   //          data: {
-   //             username: username,
-   //             password: password,
-   //             image: Math.floor(Math.random() * 7) + 1
-   //          }
-   //       });
-   //       console.log(result)
-   //       socket.emit("success", {
-   //          message: "You've successfully register"
-   //       })
-   //    } catch (e: any) {
-   //       socket.emit("error", {
-   //          error: "Username is already taken."
-   //       })
-   //    }
-   // }
-
-   // async signinUser(username: string, password: string, socket: Socket) {
-   //    try {
-   //       const user = await prisma.participant.findFirst({
-   //          where: {
-   //             username: username,
-   //             password: password
-   //          }
-   //       });
-   //
-   //       if (!user) {
-   //          socket.emit("error", {
-   //             error: "Username is doesn't found."
-   //          })
-   //          return;
-   //       }
-   //
-   //       socket.emit("signed", {
-   //          message: "You've successfully login",
-   //          user: {
-   //             id: user.id,
-   //             username: user.username,
-   //             image: user.image
-   //          },
-   //          token: `Bearer ${generateToken({ userId: user.id, username: user.username })}`
-   //       })
-   //    } catch (e: any) {
-   //       socket.emit("error", {
-   //          error: "Sever error, try again later."
-   //       })
-   //    }
-   // }
 
    async joinRoom(roomId: string, socket: Socket) {
       const room = await prisma.room.findFirst({
@@ -80,12 +26,8 @@ export class ParticipantManager {
             adminId: true
          }
       });
-      console.log(room)
 
       if (!room) {
-         // socket.emit("error", {
-         //    message: "Room doesn't found."
-         // })
          return {
             status: "error",
             message: "Room doesn't found."
@@ -97,9 +39,6 @@ export class ParticipantManager {
       });
 
       if (isUserExist.length) {
-         // socket.emit("error", {
-         //    message: "User is already in room"
-         // })
          return {
             status: "error",
             message: "User is already in room"
@@ -107,9 +46,6 @@ export class ParticipantManager {
       }
 
       if (room?.status !== "WAITING") {
-         // socket.emit("error", {
-         //    message: `Quiz is ${room?.status}`
-         // });
          return {
             status: "error",
             message: `Quiz is ${room?.status}`
@@ -117,7 +53,6 @@ export class ParticipantManager {
       }
 
       try {
-         console.log(socket.decoded.id)
          const updatedRoom = await prisma.room.update({
             where: {
                id: roomId,
@@ -156,17 +91,7 @@ export class ParticipantManager {
                quizId: updatedRoom.quizes[0].id
             }
          }
-
-         // socket.emit("joined", {
-         //    roomId,
-         //    status: room.status,
-         //    pointsId: points.id
-         // });
       } catch (e: any) {
-         // socket.emit("error", {
-         //    error: "Sever error, try again later."
-         // })
-         console.log(e);
          return {
             status: "error",
             message: "Sever error, try again later."
@@ -216,13 +141,8 @@ export class ParticipantManager {
       }
 
       const problem = quiz?.problems[0];
-      console.log("problem Id: " + problemId);
-      console.log(quiz.problems);
-      console.log(problem.startTime?.getTime())
 
       if (problem?.answer === answer) {
-         console.log("correct answer")
-
          const result = await prisma.points.update({
             where: {
                id: pointsId,
@@ -235,10 +155,8 @@ export class ParticipantManager {
                }
             }
          })
-         console.log(result)
          return;
       }
-      console.log("wrong answer")
    }
 
    async getRecentlyJoinedRooms(socket: Socket) {
@@ -248,9 +166,13 @@ export class ParticipantManager {
          },
          select: {
             joinedRooms: {
+               orderBy: {
+                  createdAt: 'desc'
+               },
                select: {
                   quizes: {
                      select: {
+                        id: true,
                         points: {
                            where: {
                               participantId: socket.decoded.id
@@ -271,8 +193,6 @@ export class ParticipantManager {
             }
          }
       });
-
-      console.log(rooms)
       return rooms;
    }
 

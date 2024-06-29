@@ -1,10 +1,9 @@
-import { Server, Socket } from "socket.io";
-import { AdminManager, MAX_TIME_SEC, Room, Status } from "./AdminManager";
-import { IoManager } from "./IoManager";
-import { Problem, Quiz } from "../Quiz";
+import { Socket } from "socket.io";
+import { AdminManager } from "./AdminManager";
 import prisma from "../db";
 import { ParticipantManager } from "./ParticipantManager";
 import { authMiddleware } from "../middlewares/authMiddleware";
+import { Leaderboard } from "../lib/types/types";
 
 export class UserManager {
    private adminManager;
@@ -16,7 +15,6 @@ export class UserManager {
    }
 
    addUser(socket: Socket) {
-      console.log("connected")
       socket.on("RegisterAdmin", async ({ username, password }: {
          username: string,
          password: string,
@@ -42,53 +40,14 @@ export class UserManager {
          roomName: string,
       }, callback: CallableFunction) => {
          // middleware
-         console.log("outside middleware")
          authMiddleware(socket, async (err: any) => {
-            console.log("pre middleware")
             if (err) {
-               console.log(err);
                return callback({
                   status: 'error',
                   message: "Authentication error"
                })
             }
             this.adminManager.addRoom(roomName, socket);
-
-            // const username = this.adminManager.admin;
-            // const admin = await prisma.admin.findFirst({
-            //    where: {
-            //       username: username
-            //    }
-            // })
-
-            // if (!admin) {
-            //    socket.emit("error", {
-            //       error: "Admin doesn't found"
-            //    })
-            //    return;
-            // }
-            //
-            // console.log(admin)
-
-            // const room: {
-            //    error: boolean,
-            //    message: string
-            //    roomId: string
-            // } = this.adminManager.addRoom(roomName, admin.id, socket);
-            // this.adminManager.addRoom(roomName, socket);
-
-
-            // if (room.error) {
-            //    socket.emit("error", {
-            //       error: room.message
-            //    })
-            //    return;
-            // }
-            // console.log("room added")
-            // socket.emit("room", {
-            //    message: room.message,
-            //    roomId: room.roomId
-            // })
          });
       })
 
@@ -102,9 +61,7 @@ export class UserManager {
       socket.on("getMyRooms", ({ }, callback: CallableFunction) => {
          // middleware
          authMiddleware(socket, async (err: any) => {
-            console.log("pre middleware")
             if (err) {
-               console.log(err);
                return callback({
                   status: 'error',
                   message: "Authentication error"
@@ -118,7 +75,6 @@ export class UserManager {
       socket.on("deleteRoom", ({ roomId }: { roomId: string }, callback: CallableFunction) => {
          authMiddleware(socket, async (err: any) => {
             if (err) {
-               console.log(err);
                return callback({
                   status: 'error',
                   message: "Authentication error"
@@ -141,7 +97,6 @@ export class UserManager {
       }, callback: CallableFunction) => {
          authMiddleware(socket, async (err: any) => {
             if (err) {
-               console.log(err);
                return callback({
                   status: 'error',
                   message: "Authentication error"
@@ -149,36 +104,14 @@ export class UserManager {
             }
             this.adminManager.addProblem(quizId, title, options, answer, countdown, socket)
          })
-         // const result: {
-         //    error: boolean,
-         //    message: string
-         // } = this.adminManager.addProblem(roomId, quizId, title, options, answer, countdown)
-
-
-         // if (result.error) {
-         //    socket.emit("error", {
-         //       error: result.message
-         //    })
-         // } else {
-         //    socket.emit("success", {
-         //       message: result.message
-         //    })
-         // }
       })
-
-      // socket.on("getQuiz", ({ roomId }: { roomId: string }) => {
-      //    const quiz = this.adminManager.getQuiz(roomId)
-      //    console.log("quiz" + JSON.stringify(quiz))
-      // })
 
       socket.on("start", ({ roomId, quizId }: {
          roomId: string,
          quizId: string,
       }, callback: CallableFunction) => {
          authMiddleware(socket, async (err: any) => {
-            console.log("pre middleware")
             if (err) {
-               console.log(err);
                return callback({
                   status: 'error',
                   message: "Authentication error"
@@ -186,24 +119,6 @@ export class UserManager {
             }
             this.adminManager.start(roomId, quizId, socket);
          });
-         // join the admin roomId
-         // const result: {
-         //    error: boolean,
-         //    message: string,
-         //    countdown: number
-         // } = this.adminManager.start(roomId);
-
-
-         // if (result.error) {
-         //    socket.emit("error", {
-         //       error: result.message
-         //    })
-         // } else {
-         //    socket.emit("success", {
-         //       message: result.message
-         //    })
-         //    this.adminManager.getLeaderboard(roomId, result.countdown);
-         // }
       })
 
       socket.on("start-automatically", async ({ roomId, quizId }: {
@@ -213,26 +128,9 @@ export class UserManager {
          const SECONDS_DELAY: number = 10;
          let COUNTDOWN_TIMER: number = 0;
 
-         // const { room, error }: {
-         //    room: Room | null,
-         //    error: string | null
-         // } = this.adminManager.findRoom(roomId);
-
-         // console.log("room" + room)
-
-         // if (!room) {
-         //    console.log("error in start-automatically")
-         //    socket.emit("error", error);
-         //    return;
-         // }
-
-         // join the admin roomId
-         // socket.join(roomId);
          socket.emit("operation", {
             operation: "start-automatically"
          });
-
-         // const noOfProblems: number = room?.quiz.getQuiz().length;
 
          const noOfProblems: number = await this.adminManager.getNoOfProblems(roomId, quizId, socket);
 
@@ -244,7 +142,6 @@ export class UserManager {
                this.adminManager.getLeaderboard(quizId, roomId, COUNTDOWN_TIMER);
             } else {
                COUNTDOWN_TIMER = await this.adminManager.next(roomId, quizId, socket);
-               console.log("COUNTDOWN_TIMER " + COUNTDOWN_TIMER)
                this.adminManager.getLeaderboard(quizId, roomId, COUNTDOWN_TIMER);
             }
             await new Promise(r => setTimeout(r, (COUNTDOWN_TIMER + SECONDS_DELAY) * 1000));
@@ -257,19 +154,6 @@ export class UserManager {
          roomId: string,
          quizId: string,
       }) => {
-         // const result: {
-         //    error: boolean,
-         //    message: string,
-         //    countdown: number
-         // } = this.adminManager.next(roomId);
-         // if (result.error) {
-         //    socket.emit("error", {
-         //       error: result.message
-         //    })
-         // } else {
-         //    this.adminManager.getLeaderboard(roomId, result.countdown);
-         // }
-
          this.adminManager.next(roomId, quizId, socket)
       })
 
@@ -278,55 +162,58 @@ export class UserManager {
          quizId: string
       }) => {
          this.adminManager.endQuiz(roomId, quizId, socket);
-
-         // if (result.error) {
-         //    socket.emit("error", {
-         //       error: result.message
-         //    })
-         // }
-         // this.adminManager.getLeaderboard(roomId, 0);
       })
 
-      // socket.on("JoinRoom", ({ roomId }: {
-      //    roomId: string
-      // }, callback: CallableFunction) => {
-      //    authMiddleware(socket, async (err: any) => {
-      //       if (err) {
-      //          console.log(err);
-      //          return callback({
-      //             status: 'error',
-      //             message: "Authentication error"
-      //          });
-      //       }
-      //    });
-      // })
+      socket.on("GetLeaderboad", ({ quizId }: {
+         roomId: string,
+         quizId: string,
+         countdown: number
+      }, callback: CallableFunction) => {
+         authMiddleware(socket, async (err: any) => {
+            if (err) {
+               return callback({
+                  status: 'error',
+                  message: "Authentication error"
+               })
+            }
+            const leaderboard: Leaderboard[] = await prisma.points.findMany({
+               where: {
+                  quizId: quizId
+               },
+               orderBy: {
+                  points: 'desc'
+               },
+               select: {
+                  points: true,
+                  participant: {
+                     select: {
+                        id: true,
+                        username: true,
+                        image: true
+                     }
+                  }
+               }
+            })
+            return callback(leaderboard);
+         });
+      })
 
       socket.on("disconnect", () => {
          console.log("Admin is disconnected");
       })
-
-      // socket.on("RegisterUser", ({ username, password }: {
-      //    username: string,
-      //    password: string,
-      // }) => {
-      //    this.participantManager.registerUser(username, password, socket);
-      // })
 
       socket.on("JoinRoom", ({ roomId }: {
          participantId: string,
          roomId: string,
       }, callback: CallableFunction) => {
          authMiddleware(socket, async (err: any) => {
-            console.log("pre middleware")
             if (err) {
-               console.log(err);
                return callback({
                   status: 'error',
                   message: "Authentication error"
                })
             }
             const result = await this.participantManager.joinRoom(roomId, socket);
-            console.log(result)
             return callback(result);
          });
       })
@@ -336,16 +223,13 @@ export class UserManager {
          quizId: string
       }, callback: CallableFunction) => {
          authMiddleware(socket, async (err: any) => {
-            console.log("premierwe")
             if (err) {
-               console.log(err);
                return callback({
                   status: 'error',
                   message: "Authentication error"
                })
             }
             const problemsLength = await this.adminManager.getNoOfProblems(roomId, quizId, socket);
-            console.log(problemsLength)
             return callback(problemsLength);
          })
       })
@@ -359,7 +243,6 @@ export class UserManager {
       }, callback: CallableFunction) => {
          authMiddleware(socket, async (err: any) => {
             if (err) {
-               console.log(err);
                return callback({
                   status: 'error',
                   message: "Authentication error"
@@ -372,7 +255,6 @@ export class UserManager {
       socket.on("GetRecentlyJoinedRooms", ({ }, callback: CallableFunction) => {
          authMiddleware(socket, async (err: any) => {
             if (err) {
-               console.log(err);
                return callback({
                   status: 'error',
                   message: "Authentication error"
@@ -388,93 +270,5 @@ export class UserManager {
       }) => {
          socket.leave(roomId);
       })
-
-      // socket.on("SigninUser", ({ username, password }: {
-      //    username: string,
-      //    password: string,
-      // }) => {
-      //    // this.participantManager.signinUser(username, password, socket)
-      //
-      //    socket.on("JoinRoom", ({ roomId }: {
-      //       participantId: string,
-      //       roomId: string,
-      //    }) => {
-      //       this.participantManager.joinRoom(roomId, socket);
-      //
-      //       socket.on("Submit", ({ participantId, pointsId, roomId, quizId, problemId, answer }: {
-      //          participantId: string,
-      //          pointsId: string,
-      //          roomId: string,
-      //          quizId: string,
-      //          problemId: string,
-      //          answer: number,
-      //       }) => {
-      //          this.participantManager.submitAnswer(participantId, pointsId, roomId, quizId, problemId, answer, socket);
-      //       })
-      //
-      //       socket.on("NoOfProblems", ({ roomId, quizId }: {
-      //          roomId: string,
-      //          quizId: string
-      //       }) => {
-      //          this.adminManager.getNoOfProblems(roomId, quizId, socket);
-      //       })
-      //
-      //       socket.on("LeaveRoom", ({ roomId }: {
-      //          roomId: string
-      //       }) => {
-      //          socket.leave(roomId);
-      //       })
-      //    })
-      //
-      //    socket.on("disconnect", () => {
-      //       console.log("User disconnected")
-      //    })
-      // })
-
-      // socket.on("JoinUser", ({ username, roomId }: {
-      //    username: string;
-      //    roomId: string;
-      // }) => {
-      //    const resultJoin = this.adminManager.addUser(roomId, username, socket);
-      //    if (resultJoin.error) {
-      //       socket.emit("resultJoin", {
-      //          error: resultJoin.error,
-      //          success: false
-      //       });
-      //    } else {
-      //       console.log(resultJoin.problems)
-      //       socket.emit("resultJoin", {
-      //          id: resultJoin.id,
-      //          roomId: resultJoin.roomId,
-      //          status: resultJoin.status,
-      //          image: resultJoin.image,
-      //          problems: resultJoin.problems,
-      //          success: true
-      //       });
-      //       console.log("Succceessfully join")
-      //       // socket.join(roomId);
-      //       // IoManager.io.to(roomId).emit("problem", resultJoin)
-      //    }
-      //    socket.on("leaveRoom", ({ roomId }: {
-      //       roomId: string
-      //    }) => {
-      //       console.log("leave room " + roomId)
-      //       socket.leave(roomId)
-      //    })
-      //
-      // })
-
-
-      // socket.on("Submit", ({ userId, roomId, problemId, answer, countdown }:
-      //    {
-      //       userId: string,
-      //       roomId: string,
-      //       problemId: string,
-      //       answer: number,
-      //       countdown: number,
-      //    }) => {
-      //    this.adminManager.submitAnswer(userId, roomId, problemId, answer, countdown);
-      // })
-
    }
 }

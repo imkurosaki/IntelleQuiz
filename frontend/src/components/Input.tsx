@@ -1,5 +1,3 @@
-
-
 export default function Input({ placeholder, type, onChange, value }: {
    placeholder: string,
    type: string,

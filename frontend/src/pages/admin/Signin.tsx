@@ -38,7 +38,7 @@ export default function Signin() {
 
    useEffect(() => {
       if (Cookies.get('token')) {
-         navigate('/admin/room')
+         navigate('/room')
       }
       socket.on("error", ({ error }: { error: string }) => {
          toast(error, {
@@ -53,7 +53,6 @@ export default function Signin() {
          data: AdminInfo,
          token: string
       }) => {
-         console.log("signed")
          setAdminInfo({
             id: data.id,
             username: data.username,
@@ -74,7 +73,7 @@ export default function Signin() {
             duration: 5000,
             icon: <ErrorIcons />
          })
-         navigate("/admin/room");
+         navigate("/room");
       })
 
       return () => {
@@ -116,7 +115,7 @@ export default function Signin() {
                Sign In
             </Button>
             <Link
-               to={'/admin/register'}
+               to={'/register'}
                className="text-sm hover:underline"
             >Don't an account yet? Register here</Link>
          </div>

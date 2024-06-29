@@ -12,4 +12,18 @@ export interface Leaderboard {
 export interface RegisterResponse {
    status: string,
    message: string
-}  
+}
+
+export interface Problem {
+   roomId: string;
+   id: string;
+   title: string;
+   options: string[];
+   answer: number;
+   countdown: number;
+}
+
+export interface User {
+   id: string;
+   username: string;
+}

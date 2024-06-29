@@ -1,6 +1,5 @@
 import { ReactNode } from "react"
 
-
 export default function Button({ children, onClick, className, disabled }: {
    children: ReactNode,
    onClick: any,

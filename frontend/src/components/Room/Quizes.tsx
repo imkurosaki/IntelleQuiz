@@ -31,9 +31,7 @@ export default function Quizes({ quizId, pointsId, problem, roomId, socket, curr
 
    const handleSubmit = (e: any) => {
       e.preventDefault()
-      console.log(quizId)
       setDisable(true)
-      console.log(answer)
       if (answer.current !== "") {
          socket.emit("Submit", {
             roomId,

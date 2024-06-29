@@ -1,5 +1,5 @@
 import { Socket } from "socket.io";
-import { Problem, Quiz } from "../Quiz";
+import { Problem } from "../lib/types/types";
 import { v4 as uuidv4 } from 'uuid';
 import { IoManager } from "./IoManager";
 import { generateRandomString } from "../lib/randomStrings";
@@ -20,7 +20,6 @@ export interface Room {
    name: string;
    admin: string;
    status: Status;
-   quiz: Quiz;
    users: User[];
 }
 
@@ -64,14 +63,8 @@ export class AdminManager {
             adminId: socket.decoded.id
          }
       });
-      // const room = this.rooms.find((room: Room) => room.name === roomName && room.admin === admin);
+
       if (room) {
-         console.log("room is already exist " + roomName);
-         // return {
-         //    error: true,
-         //    message: `${roomName} Room is already exist`,
-         //    roomId: ""
-         // };
          socket.emit("error", {
             message: `${roomName} Room is already exist`
          })
@@ -117,21 +110,6 @@ export class AdminManager {
             error: `${roomName} Room is already exist`
          })
       }
-
-      // this.rooms.push({
-      //    id: roomId,
-      //    name: roomName,
-      //    admin,
-      //    status: Status.Waiting,
-      //    quiz: new Quiz(roomId),
-      //    users: [],
-      // })
-      // console.log("successfully added room " + this.rooms)
-      // return {
-      //    error: false,
-      //    message: "Room is successfully added",
-      //    roomId
-      // };
    }
 
    async deleteRoom(socket: Socket, roomId: string) {
@@ -215,7 +193,6 @@ export class AdminManager {
                image: Math.floor(Math.random() * 7) + 1
             }
          });
-         console.log(result)
          return {
             status: 'success',
             message: "Username are successfully register"
@@ -264,87 +241,6 @@ export class AdminManager {
       }
    }
 
-   addUser(roomId: string, username: string, socket: Socket) {
-      const room = this.rooms.find((room: Room) => room.id === roomId);
-      console.log(room?.status)
-      if (!room) {
-         return { error: "Room doesn't exist" };
-      }
-      const user = room?.users.find((user: any) => user.username === username);
-      if (user) {
-         return { error: "User already in room" };
-      }
-
-      if (room.status === Status.Finished || room.status === Status.Ongoing || room.status === Status.Started) {
-         return { error: `Quiz is ${room?.status}` }
-      }
-
-      // temporarily added this for avatar
-      const randomNumber = Math.floor(Math.random() * 7) + 1;
-      const id: string = uuidv4()
-      room.users.push({
-         id,
-         username: username || "",
-         points: 0,
-         image: randomNumber.toString(),
-      })
-      socket.join(roomId);
-      IoManager.io.to(roomId).emit("participants", {
-         participants: room.users
-      });
-      return {
-         id,
-         roomId: room.id,
-         image: randomNumber,
-         status: room.status,
-         problems: room.quiz.getQuiz()
-      };
-   }
-
-   // async addQuiz(roomId: string, quizId: string, title: string, options: string[], answer: number, countdown: number, socket: Socket) {
-   //    const room = prisma.room.findFirst({
-   //       where: {
-   //          id: roomId
-   //       }
-   //    })
-   //    // const room = this.rooms.find((room: Room) => room.id === roomId)
-   //    if (!room) {
-   //       console.log("No room found")
-   //       // return {
-   //       //    error: true,
-   //       //    message: "No room found"
-   //       // };
-   //       socket.emit("error", {
-   //          error: `${roomId} Room is already exist`
-   //       })
-   //       return;
-   //    }
-   //
-   //    // const quiz = room.quizes;
-   //    try {
-   //       const newProblem = await prisma.problem.create({
-   //          data: {
-   //             title: title,
-   //          }
-   //       })
-   //       const options = await prisma.option.create({
-   //          data: {
-   //             choice: optio
-   //          }
-   //       })
-   //
-   //    } catch (e: any) {
-   //       socket.emit("error", {
-   //          error: ""
-   //       })
-   //    }
-   //    // quiz.addQuiz(roomId, title, options, answer, countdown);
-   //    // return {
-   //    //    error: false,
-   //    //    message: "Problem added successfully"
-   //    // }
-   // }
-
    async addProblem(quizId: string, title: string, options: string[], answer: number, countdown: number, socket: Socket) {
       try {
          const problem = await prisma.problem.create({
@@ -378,33 +274,6 @@ export class AdminManager {
          socket.emit("error", {
             message: "Failed to add problem"
          })
-      }
-   }
-
-   getQuiz(roomId: string) {
-      const room = this.rooms.find((room: Room) => room.id === roomId)
-      if (!room) {
-         console.log("No room found")
-         return;
-      }
-      return room.quiz;
-   }
-
-   submitAnswer(userId: string, roomId: string, problemId: string, answer: number, countdown: number) {
-      const endTime = new Date().getTime();
-      const room = this.rooms.find((room: Room) => room.id === roomId)
-      if (!room) {
-         console.log("No room found")
-         return;
-      }
-      const problem = room.quiz.getQuiz().find((problem: Problem) => problem.id === problemId);
-      if (problem?.answer === answer) {
-         const user = room.users.find((user: User) => user.id === userId);
-         if (!user) {
-            console.log("User is not found");
-            return;
-         }
-         user.points += this.calculatePoints(room.quiz.startTime, endTime, countdown);
       }
    }
 
@@ -528,10 +397,8 @@ export class AdminManager {
             })
             this.getLeaderboard(quizId, roomId, problem.countdown);
          });
-         console.log("start " + problem.countdown)
          return problem.countdown
       } catch (e: any) {
-         console.log(e)
          socket.emit("error", {
             message: "Error fetching quiz, try again later"
          })
@@ -573,8 +440,6 @@ export class AdminManager {
             participants: true
          }
       });
-
-      console.log(room?.participants)
 
       if (!room?.quizes) {
          socket.emit("error", {
@@ -653,56 +518,13 @@ export class AdminManager {
             this.getLeaderboard(quizId, roomId, problem.countdown);
          });
 
-         console.log("next " + problem.countdown)
          return problem.countdown
       } catch (e: any) {
-         console.log(e)
          socket.emit("error", {
             message: "Error fetching quiz, try again later"
          })
          return 0;
       }
-
-      // const room = this.rooms.find((room: Room) => room.id === roomId)
-      // if (!room) {
-      //    console.log("No room found")
-      //    return {
-      //       error: true,
-      //       message: "No room found",
-      //       countdown: 0
-      //    };
-      // }
-      //
-      // const { error, problem, index }: any = room.quiz.next();
-      // if (error) {
-      //    return {
-      //       error: true,
-      //       message: "There's no problems left.",
-      //       countdown: 0
-      //    }
-      // }
-      // room.status = Status.Ongoing;
-      // room.quiz.startTime = new Date().getTime();
-      // IoManager.io.to(roomId).emit("problem", {
-      //    problem: {
-      //       id: problem.id,
-      //       roomId: problem.roomId,
-      //       title: problem.title,
-      //       options: problem.options,
-      //       countdown: problem.countdown,
-      //    },
-      //    status: room.status
-      // });
-      // IoManager.io.to(roomId).emit("adminProblem", {
-      //    problem,
-      //    index,
-      //    status: room.status
-      // })
-      // return {
-      //    error: false,
-      //    message: "",
-      //    countdown: problem.countdown
-      // };g
    }
 
    async endQuiz(roomId: string, quizId: string, socket: Socket) {
@@ -725,7 +547,6 @@ export class AdminManager {
          }
       })
 
-      console.log(leaderboard)
       try {
          await prisma.$transaction(async (prisma) => {
             await prisma.room.update({
@@ -757,28 +578,9 @@ export class AdminManager {
             message: "Server failure, try agin later."
          })
       }
-
-      // const room = this.rooms.find((room: Room) => room.id === roomId) if (!room) { console.log("No room found") return { error: true, message: "No room found" }; }
-      //
-      // room.status = Status.Finished;
-      // IoManager.io.to(roomId).emit("end", {
-      //    status: room.status,
-      //    leaderboard: this.leaderboard(room),
-      // });
-      // return {
-      //    error: false,
-      //    message: "Room is end"
-      // }
    }
 
    getLeaderboard(quizId: string, roomId: string, countdown: number) {
-      console.log("leaderboard " + countdown)
-      // const room = this.rooms.find((room: Room) => room.id === roomId)
-      // if (!room) {
-      //    console.log("No room found")
-      //    return;
-      // }
-
       setTimeout(async () => {
          const leaderboard: Leaderboard[] = await prisma.points.findMany({
             where: {
@@ -798,7 +600,6 @@ export class AdminManager {
                }
             }
          })
-         // const leaderboard = room.users.sort((a, b) => a.points - b.points).reverse();
          IoManager.io.to(roomId).emit("leaderboard", {
             leaderboard: leaderboard,
             status: "LEADERBOARD",
@@ -834,7 +635,6 @@ export class AdminManager {
          socket.emit("noOfProblems", {
             problemsLength
          });
-         console.log(problemsLength)
          return problemsLength;
       } catch (e: any) {
          socket.emit("error", {
@@ -843,8 +643,4 @@ export class AdminManager {
          return 0;
       }
    }
-   //
-   // private leaderboard(room: Room) {
-   //    return room.users.sort((a, b) => a.points - b.points).reverse();
-   // }
 }

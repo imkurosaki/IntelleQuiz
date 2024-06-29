@@ -13,7 +13,6 @@ export default function WaitingPage({ participants, user, noOfProblems }: {
    noOfProblems: number,
 }) {
 
-   console.log("noOfProblems " + noOfProblems)
    return <div className="flex justify-center pt-20 pb-36">
       <div className="mt-12">
          <p className="text-sm text-gray-500 mb-5">1 of {noOfProblems.toString()} problems</p>

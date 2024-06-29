@@ -12,7 +12,7 @@ export default function RoomCard({ name, roomId, status, socket }: {
    const navigate = useNavigate();
    return <div onClick={() => {
       navigate(`${roomId}`)
-   }} className="border relative border-gray-400 rounded-lg px-10 py-14 cursor-pointer shadow-lg hover:bg-gray-950 hover:text-white">
+   }} className="border relative border-gray-400 rounded-lg px-10 py-14 cursor-pointer shadow-lg hover:bg-gray-950 hover:text-white transition-transform duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg">
       <div>
          <p>Room: <span className="font-bold text-lg">{name}</span></p>
          <div className="flex items-center gap-3">

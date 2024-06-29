@@ -1,7 +1,5 @@
-import { useNavigate } from "react-router-dom"
 import { PointsUserCard } from "./Leaderboard"
 import { Participant } from "./WaitingPage"
-import { Socket } from "socket.io-client"
 
 export default function EndRoom({ leaderboard }: {
    leaderboard: Participant[],

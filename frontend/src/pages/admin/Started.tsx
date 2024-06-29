@@ -5,9 +5,8 @@ import { CountdownCircle } from "../../components/CountdownCircle";
 import Button from "../../components/Button";
 import { Participant } from "../../components/Room/WaitingPage";
 import Leaderboard from "../../components/Room/Leaderboard";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useRecoilState } from "recoil";
 import { AdminInfo, adminInfo } from "../../store/admin.ts";
-import Modal from "../../components/Modal";
 import { useNavigate } from "react-router-dom";
 import EndRoom from "../../components/Room/EndRoom";
 import Cookies from 'js-cookie';
@@ -44,24 +43,15 @@ export default function Started() {
    const [operation, setOperation] = useState<string>("manually");
    const [status, setStatus] = useState("")
    const [leaderboard, setLeaderBoards] = useState<Participant[]>([])
-   const [adminInfoAtom, setAdminInfoAtom] = useRecoilState<AdminInfo>(adminInfo);
+   const [adminInfoAtom] = useRecoilState<AdminInfo>(adminInfo);
    const navigate = useNavigate();
    const [roomId, setRoomId] = useState("");
    const [noOfProblems, setNoOfProblems] = useState(0);
    const [currentProblem, setCurrentProblem] = useState(0);
 
-
    useEffect(() => {
-      console.log("started log")
-      // if (!adminInfoAtom.username) {
-      //    navigate('admin/register');
-      // }
-
-      // if (!adminInfoAtom.currentRoom.id) {
-      //    navigate('admin/room');
-      // }
       if (!Cookies.get('token')) {
-         navigate('/admin/signin')
+         navigate('/signin')
       }
 
       socket.on("adminProblem", ({ problem, currentProblem, roomId, status, noOfProblems, index }: {
@@ -72,10 +62,7 @@ export default function Started() {
          currentProblem: number,
          index: number
       }) => {
-         console.log(problem)
-         console.log(roomId)
          setNoOfProblems(noOfProblems);
-         console.log(currentProblem)
          setCurrentProblem(currentProblem);
          setRoomId(roomId);
          setProblem(problem)
@@ -100,13 +87,11 @@ export default function Started() {
          status: string,
          leaderboard: Participant[],
       }) => {
-         console.log("quiz is end")
          setStatus(status);
          setLeaderBoards(leaderboard);
       })
 
       socket.on("error", ({ message }: { message: string }) => {
-         console.log(message)
          toast(message, {
             className: "bg-gray-950 text-white",
             duration: 5000,
@@ -168,15 +153,8 @@ export default function Started() {
                      socket.emit("leaveRoom", {
                         roomId
                      });
-                     // setAdminInfoAtom({
-                     //    username: "",
-                     //    currentRoom: {
-                     //       id: "",
-                     //       noOfProblems: 0,
-                     //    }
-                     // })
                      removeCookie('token');
-                     navigate("/admin/signin")
+                     navigate("/signin")
                   }}
                >
                   Logout
@@ -186,7 +164,7 @@ export default function Started() {
                      socket.emit("leaveRoom", {
                         roomId
                      })
-                     navigate("/admin/room")
+                     navigate("/room")
                   }}
                >
                   Yes, please

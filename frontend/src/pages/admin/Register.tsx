@@ -3,8 +3,6 @@ import Input from "../../components/Input";
 import Button from "../../components/Button";
 import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
-import { useSetRecoilState } from "recoil";
-import { AdminInfo, adminInfo } from "../../store/admin.ts";
 import { useSocket } from "../../lib/hooks";
 import { Socket } from "socket.io-client";
 import { adminRegisterInput } from "../../zod/adminValidation.ts";
@@ -14,7 +12,6 @@ export default function Register() {
    const [username, setUsername] = useState("");
    const [password, setPassword] = useState("");
    const navigate = useNavigate();
-   // const setAdminInfo = useSetRecoilState<AdminInfo>(adminInfo);
    const socket: Socket = useSocket("Bearer ");
    const [error, setError] = useState("");
 
@@ -44,23 +41,14 @@ export default function Register() {
             toast.success(message, {
                duration: 5000,
             })
-            navigate("/admin/signin")
+            navigate("/signin")
          }
       });
-
-      // setAdminInfo({
-      //    username,
-      //    currentRoom: {
-      //       id: '',
-      //       noOfProblems: 0
-      //    }
-      // });
-      // navigate("/admin/room");
    }
 
    useEffect(() => {
       if (Cookies.get('token')) {
-         navigate('/admin/room')
+         navigate('/room')
       }
    }, [navigate]);
 
@@ -97,7 +85,7 @@ export default function Register() {
                Register
             </Button>
             <Link
-               to={'/admin/signin'}
+               to={'/signin'}
                className="text-sm hover:underline"
             >Have already an account? Signin here</Link>
          </div>

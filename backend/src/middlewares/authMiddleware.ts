@@ -13,17 +13,14 @@ declare module 'socket.io' {
 }
 
 export const authMiddleware = async (socket: Socket, next: (err?: Error) => void) => {
-   console.log('authMiddleware')
    const tokenToVerify: string = socket.handshake.auth.token?.split("Bearer ")[1];
 
-   console.log(tokenToVerify)
    if (!tokenToVerify) {
       return next(new Error('Unauthorized token'));
    }
 
    try {
       if (!process.env.JWT_SECRET) {
-         console.error("No JWT_SECRET in the env");
          return;
       }
 

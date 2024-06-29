@@ -1,7 +1,5 @@
-import { useRecoilValue } from "recoil";
 import Button from "../../components/Button";
 import { useSocket } from "../../lib/hooks";
-import { AdminInfo, adminInfo } from "../../store/admin.ts";
 import { useNavigate } from "react-router-dom";
 import { Socket } from "socket.io-client";
 import Cookies from 'js-cookie';
@@ -12,7 +10,6 @@ export default function QuizControl({ isReady, quizId, roomId }: {
    roomId: string
 }) {
    const socket: Socket = useSocket(Cookies.get('token') || "Bearer ");
-   // const adminInfoAtom = useRecoilValue<AdminInfo>(adminInfo);
    const navigate = useNavigate();
 
    const startAutomatically = () => {
@@ -24,7 +21,6 @@ export default function QuizControl({ isReady, quizId, roomId }: {
    }
 
    const startManually = () => {
-      console.log("asdasd")
       socket.emit("start", {
          roomId,
          quizId

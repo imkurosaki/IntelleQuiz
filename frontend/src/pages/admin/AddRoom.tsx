@@ -26,7 +26,6 @@ export default function AddRoom() {
 
    const submitHandler = () => {
       const validation: any = adminAddRoomInput.safeParse({ roomName });
-      console.log(validation)
       if (!validation.success) {
          const errors: any = JSON.parse(validation.error.message);
          setError(errors[0].message);
@@ -64,7 +63,7 @@ export default function AddRoom() {
    useEffect(() => {
       // check if there is a cookie
       if (!Cookies.get('token')) {
-         navigate('/admin/signin')
+         navigate('/signin')
       }
 
       socket.on("error", ({ message }: { message: string }) => {
@@ -82,7 +81,6 @@ export default function AddRoom() {
          createdAt: Date,
          quizes: any
       }[]) => {
-         console.log(rooms)
          setRooms(rooms);
       });
 
@@ -134,19 +132,6 @@ export default function AddRoom() {
                >
                   Add
                </Button>
-               {/* <Button */}
-               {/*    onClick={() => { */}
-               {/*       if (!roomId) { */}
-               {/*          console.log("error dont have roomId") */}
-               {/*          return; */}
-               {/*       } */}
-               {/*       navigate(roomId); */}
-               {/*    }} */}
-               {/*    className="py-2 px-4 text-white rounded-lg border border-gray-100" */}
-               {/*    disabled={disable} */}
-               {/* > */}
-               {/*    Next */}
-               {/* </Button> */}
             </div>
          </div>
       </div>

@@ -2,8 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useSocket } from "../../lib/hooks";
 import { Socket } from "socket.io-client";
-import { AdminInfo, adminInfo } from "../../store/admin.ts";
-import { useRecoilState, useRecoilValue } from "recoil";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
 import { toast } from "sonner";
@@ -12,12 +10,12 @@ import QuizControl from "./QuizControl";
 import Cookies from 'js-cookie'
 import Leaderboard from "../../components/Room/Leaderboard.tsx";
 import { CopyClipboard } from "../../components/Accordion.tsx";
+import { Participant } from "../../components/Room/WaitingPage.tsx";
 
 export default function AddProblem() {
    const { roomIdParams } = useParams();
    const socket: Socket = useSocket(Cookies.get('token') || "Bearer ");
    const navigate = useNavigate();
-   // const [adminInfoAtom, setAdminInfoAtom] = useRecoilState<AdminInfo>(adminInfo);
    const [count, setCount] = useState(4);
    const [options, setOptions] = useState(["", "", "", ""]);
    const [title, setTitle] = useState("");
@@ -30,16 +28,13 @@ export default function AddProblem() {
    const [leaderboard, setLeaderBoards] = useState<Participant[]>([])
 
    useEffect(() => {
-      // if (!roomIdParams || !adminInfoAtom.username) {
-      //    navigate('admin/register');
-      // }
       if (!Cookies.get('token')) {
-         navigate('/admin/signin')
+         navigate('/signin')
       }
 
       socket.emit("roomId", { roomId: roomIdParams }, (data: any) => {
          if (data.status === "error") {
-            navigate('/admin/room');
+            navigate('/room');
             return;
          }
          if (data.status === "FINISHED") {
@@ -107,7 +102,6 @@ export default function AddProblem() {
    const submitProblemsHandler = () => {
       for (let i = 0; i < count; i++) {
          if (options[i] === "" || options[i] === undefined) {
-            console.log("Errror");
             toast("Please fill the necessary blank", {
                className: "bg-gray-950 text-white",
                duration: 5000,
@@ -118,8 +112,6 @@ export default function AddProblem() {
       }
 
       if (!options[answer.current] || title === "" || countdown.current === 0) {
-         console.log(options)
-         console.log("Errror");
          toast("Please fill the necessary blank", {
             className: "bg-gray-950 text-white",
             duration: 5000,
@@ -128,9 +120,6 @@ export default function AddProblem() {
          return;
       }
       setCount(4)
-      console.log(answer.current)
-      console.log(countdown.current)
-      console.log(options)
 
       socket.emit("addProblem", {
          quizId,
@@ -141,13 +130,6 @@ export default function AddProblem() {
       })
       setOptions(["", "", "", ""])
       setTitle("")
-      // setAdminInfoAtom({
-      //    username: adminInfoAtom.username,
-      //    currentRoom: {
-      //       id: adminInfoAtom.currentRoom.id,
-      //       noOfProblems: adminInfoAtom.currentRoom.noOfProblems + 1
-      //    }
-      // })
       isReady.current = false;
    }
 
@@ -186,7 +168,6 @@ export default function AddProblem() {
                {/* minus icon */}
                <svg onClick={() => {
                   if (count > 2) {
-                     console.log(options)
                      setOptions(options.slice(0, -1));
                      setCount(count => count - 1);
                   }

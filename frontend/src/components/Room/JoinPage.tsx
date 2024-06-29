@@ -1,8 +1,7 @@
 import { useSetRecoilState } from "recoil";
 import Button from "../Button";
 import Input from "../Input";
-import { participantInfo, userJoinInfo } from "../../store/participant";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Socket } from "socket.io-client";
 import { joinInput } from "../../zod/userValidation";
 import { toast } from "sonner";
@@ -14,7 +13,6 @@ export default function JoinPage({ socket }: {
    socket: Socket
 }) {
    const [roomId, setRoomId] = useState("");
-   // const setUserJoinInfo = useSetRecoilState(userJoinInfo);
    const [error, setError] = useState("");
    const navigate = useNavigate();
    const setCurrentRoomJoinedState = useSetRecoilState(currentRoomJoined);
@@ -43,13 +41,8 @@ export default function JoinPage({ socket }: {
             return;
          }
          setCurrentRoomJoinedState(res.data);
-         navigate(`/admin/findRoom/${roomId}`);
+         navigate(`/findRoom/${roomId}`);
       });
-
-      // setUserJoinInfo({
-      //    roomId,
-      //    username
-      // })
    }
 
    return <div className="flex w-full">
