@@ -9,12 +9,12 @@ export default function Navbar() {
    const adminInfoState = useRecoilValue(adminInfo);
    const flagRoom = useRef<boolean>(false);
 
-   return <div className="flex sticky top-0 bg-white shadow-md z-50 justify-between items-center px-20 py-3 border border-gray-700">
+   return <div className="flex bg-bgColor/30 backdrop-blur-sm sticky top-0 shadow-md z-50 justify-between items-center px-20 py-3 border-b border-b-gray-700">
       <p>Title</p>
       <div className="flex gap-10">
          {flagRoom.current === false
             ?
-            <button className="bg-gray-100 hover:bg-gray-950 hover:text-white border border-gray-900 px-8 py-3 text-black rounded-md shadow-lg transform active:scale-75 transition-transform"
+            <button className="bg-blue-600 hover:bg-blue-700 font-medium text-white border border-gray-700 px-8 py-3 rounded-md shadow-lg transform active:scale-75 transition-transform"
                onClick={() => {
                   flagRoom.current = true;
                   navigate("/findRoom")
@@ -23,7 +23,7 @@ export default function Navbar() {
                Find Room
             </button>
             :
-            <button className="bg-gray-100 hover:bg-gray-950 hover:text-white border border-gray-900 px-8 py-3 text-black rounded-md shadow-lg transform active:scale-75 transition-transform"
+            <button className="bg-blue-600 hover:bg-blue-700 font-medium text-white border border-gray-700 px-8 py-3 rounded-md shadow-lg transform active:scale-75 transition-transform"
                onClick={() => {
                   flagRoom.current = false;
                   navigate("/room")

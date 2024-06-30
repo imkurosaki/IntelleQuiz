@@ -2,16 +2,23 @@ import { useNavigate } from "react-router-dom";
 import { Socket } from "socket.io-client";
 import { useSocket } from "../../lib/hooks";
 import Cookies from "js-cookie";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ErrorIcons } from "../../pages/admin/Register";
 import JoinPage from "./JoinPage";
 import { StatusCircle } from "../RoomCard";
+import FindRoomSkeleton from "../Skeleton/FindRoomSkeleton";
+import { ThemeContext } from "../../contexts";
+import { ThemeContextInterface } from "../../lib/types";
 
 export default function FindRoom() {
    const navigate = useNavigate();
    const socket: Socket = useSocket(Cookies.get('token') || "Bearer ");
    const [roomsJoined, setRoomsJoined] = useState([]);
+   const [loading, setLoading] = useState(true);
+   const { darkTheme, toggleTheme } = useContext(
+      ThemeContext
+   ) as ThemeContextInterface;
 
    useEffect(() => {
       // check if there is a cookie
@@ -27,10 +34,11 @@ export default function FindRoom() {
          })
       });
 
-      socket.emit("GetRecentlyJoinedRooms", {}, ({ joinedRooms }: {
+      socket.emit("GetRecentlyJoinedRooms", {}, async ({ joinedRooms }: {
          joinedRooms: any
       }) => {
          setRoomsJoined(joinedRooms);
+         setLoading(false);
       })
 
       return () => {
@@ -44,25 +52,29 @@ export default function FindRoom() {
             <JoinPage socket={socket} />
          </div>
       </div>
-      <div className="h-[650px] overflow-auto border px-10 py-5 rounded-lg">
+      <div className="h-[650px] overflow-auto border border-gray-700 px-10 py-5 rounded-lg">
          <p className="mb-8">Recently Joined Rooms: </p>
-         <div className="flex flex-col gap-4">
-            {!roomsJoined.length ? (
-               <p>No recently joined room</p>
-            ) : (
-               roomsJoined.map((room: any, key: number) => (
-                  <JoinRoomCard
-                     key={key}
-                     roomName={room.name}
-                     roomId={room.id}
-                     status={room.status}
-                     quizId={room.quizes[0].id}
-                     score={room.quizes[0].points[0].points}
-                     adminName={room.admin.username}
-                  />
-               ))
-            )}
-         </div>
+         {loading ? (
+            <FindRoomSkeleton />
+         ) : (
+            <div className="flex flex-col gap-4">
+               {!roomsJoined.length ? (
+                  <p className={`${darkTheme ? "bg-white hover:bg-white text-black" : ""} bg-gray-200 border border-gray-200 px-10 py-5 rounded-lg text-sm`}>No recently joined room.</p>
+               ) : (
+                  roomsJoined.map((room: any, key: number) => (
+                     <JoinRoomCard
+                        key={key}
+                        roomName={room.name}
+                        roomId={room.id}
+                        status={room.status}
+                        quizId={room.quizes[0].id}
+                        score={room.quizes[0].points[0].points}
+                        adminName={room.admin.username}
+                     />
+                  ))
+               )}
+            </div>
+         )}
       </div>
    </div>
 }
@@ -76,12 +88,15 @@ export function JoinRoomCard({ roomName, roomId, quizId, status, score, adminNam
    adminName: string
 }) {
    const navigate = useNavigate();
+   const { darkTheme, toggleTheme } = useContext(
+      ThemeContext
+   ) as ThemeContextInterface;
 
    return <div
       onClick={() => {
          navigate(`${quizId}/leaderboard`)
       }}
-      className="flex justify-between border border-gray-300 px-14 py-4 rounded-xl shadow-md cursor-pointer transition-transform duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg p-4 bg-gray-200 hover:bg-gray-900 hover:text-white">
+      className={`${darkTheme ? "text-black" : ""} flex justify-between border border-gray-300 px-14 py-4 rounded-xl shadow-md cursor-pointer transition-transform duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg p-4 bg-gray-200 hover:bg-gray-900 hover:text-white`}>
       <div className="flex gap-10 items-center">
          <div className="mt-2">
             <p className="capitalize">Room name: <span className="text-lg font-bold">{roomName}</span></p>

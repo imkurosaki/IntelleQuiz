@@ -3,6 +3,9 @@ import { useSocket } from "../../lib/hooks";
 import { useNavigate } from "react-router-dom";
 import { Socket } from "socket.io-client";
 import Cookies from 'js-cookie';
+import { ThemeContext } from "../../contexts";
+import { ThemeContextInterface } from "../../lib/types";
+import { useContext } from "react";
 
 export default function QuizControl({ isReady, quizId, roomId }: {
    isReady: boolean,
@@ -11,6 +14,9 @@ export default function QuizControl({ isReady, quizId, roomId }: {
 }) {
    const socket: Socket = useSocket(Cookies.get('token') || "Bearer ");
    const navigate = useNavigate();
+   const { darkTheme, toggleTheme } = useContext(
+      ThemeContext
+   ) as ThemeContextInterface;
 
    const startAutomatically = () => {
       socket.emit("start-automatically", {
@@ -33,14 +39,14 @@ export default function QuizControl({ isReady, quizId, roomId }: {
       <div className="flex gap-3">
          <Button
             onClick={startAutomatically}
-            className="py-3 px-4 text-white rounded-lg border-2 border-gray-200"
+            className={`${darkTheme} py-3 px-4 text-white rounded-lg border-2 border-gray-200`}
             disabled={isReady}
          >
             Start-automatically
          </Button>
          <Button
             onClick={startManually}
-            className="py-3 px-6 text-white rounded-lg border-2 border-gray-200"
+            className={`${darkTheme && !isReady ? "bg-white text-gray-900 hover:bg-white" : ""} py-3 px-6 text-white rounded-lg border-2 border-gray-200`}
             disabled={isReady}
          >
             Start

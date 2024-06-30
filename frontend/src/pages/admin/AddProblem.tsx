@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useSocket } from "../../lib/hooks";
 import { Socket } from "socket.io-client";
@@ -62,7 +62,7 @@ export default function AddProblem() {
 
       socket.on("error", ({ message }: { message: string }) => {
          toast(message, {
-            className: "bg-gray-950 text-white",
+            className: "bg-gray-950 text-white border border-gray-50",
             duration: 5000,
             icon: <ErrorIcons />
          })
@@ -103,7 +103,7 @@ export default function AddProblem() {
       for (let i = 0; i < count; i++) {
          if (options[i] === "" || options[i] === undefined) {
             toast("Please fill the necessary blank", {
-               className: "bg-gray-950 text-white",
+               className: "bg-gray-950 text-white border border-gray-50",
                duration: 5000,
                icon: <ErrorIcons />
             })
@@ -113,7 +113,7 @@ export default function AddProblem() {
 
       if (!options[answer.current] || title === "" || countdown.current === 0) {
          toast("Please fill the necessary blank", {
-            className: "bg-gray-950 text-white",
+            className: "bg-gray-950 text-white border border-gray-50",
             duration: 5000,
             icon: <ErrorIcons />
          })
@@ -183,7 +183,7 @@ export default function AddProblem() {
                   type={"text"}
                   placeholder={countdown.current.toString()}
                   onChange={(e: any) => { countdown.current = Number(e.target.value) }}
-                  className="py-3 px-4 w-16 border border-gray-200 bg-gray-100 rounded-xl"
+                  className={`text-gray-900 py-3 px-4 w-16 border border-gray-200 bg-gray-100 rounded-xl`}
                />
             </div>
             <div>

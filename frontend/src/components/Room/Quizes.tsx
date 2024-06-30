@@ -28,10 +28,12 @@ export default function Quizes({ quizId, pointsId, problem, roomId, socket, curr
    const answer = useRef("0");
    const [disabled, setDisable] = useState(false);
    const [change, setChange] = useState("0");
+   const [submitted, setSubmitted] = useState(false);
 
    const handleSubmit = (e: any) => {
       e.preventDefault()
       setDisable(true)
+      setSubmitted(true)
       if (answer.current !== "") {
          socket.emit("Submit", {
             roomId,
@@ -71,7 +73,18 @@ export default function Quizes({ quizId, pointsId, problem, roomId, socket, curr
 
          <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-12">
             {problem.options.map((option: Option, key: number) => {
-               return <label key={key} className={`${key.toString() === change ? "border-indigo-300 text-indigo-900 bg-indigo-100 hover:bg-indigo-100" : ""} ${!disabled || key.toString() === change ? "hover:bg-gray-100" : "hover:bg-white cursor-auto"} px-4 py-5 flex gap-5 cursor-pointer  border border-gray-200 rounded-xl`}>
+               const isSelected = answer.current === key.toString();
+               const isWrong = isSelected && answer.current !== problem.answer.toString() && submitted;
+               const isCorrect = isSelected && answer.current === problem.answer.toString() && submitted;
+
+               return <label key={key} className={`
+            ${isWrong ? "bg-red-200 text-gray-950" : ""} 
+            ${problem.answer === key && submitted ? "bg-green-200 text-gray-950" : ""}
+            ${isCorrect ? "bg-green-200 text-gray-950" : ""} 
+            ${key.toString() === change && !submitted ? "border-indigo-300 text-indigo-900 bg-indigo-100 hover:bg-indigo-100" : ""} 
+            ${!submitted && key.toString() !== change ? "hover:bg-gray-100" : ""} 
+            ${submitted ? "cursor-auto " : "cursor-pointer"}
+            px-4 py-5 flex gap-5 border  border-gray-200 rounded-xl`}>
                   <input type="radio" value={key.toString()}
                      onChange={(e: any) => {
                         answer.current = e.target.value

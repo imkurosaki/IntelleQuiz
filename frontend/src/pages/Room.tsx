@@ -97,7 +97,7 @@ export default function Room() {
       return <div>
          <EndRoom leaderboard={leaderboard} />
          <div className="flex justify-end mt-20 pe-[560px]">
-            <button className="bg-gray-900 hover:bg-gray-800 px-8 py-3 text-white rounded-md"
+            <button className="bg-gray-900 hover:bg-gray-800 border border-gray-700 px-8 py-3 text-white rounded-md"
                onClick={() => {
                   socket.emit("leaveRoom", {
                      roomId: currentRoomJoinedState.roomId

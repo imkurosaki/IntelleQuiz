@@ -159,7 +159,7 @@ export default function Started() {
                >
                   Logout
                </button>
-               <Button className="bg-gray-900 hover:bg-gray-800 px-8 py-3 text-white rounded-md"
+               <Button className="bg-gray-900 border border-gray-700 hover:bg-gray-800 px-8 py-3 text-white rounded-md"
                   onClick={() => {
                      socket.emit("leaveRoom", {
                         roomId

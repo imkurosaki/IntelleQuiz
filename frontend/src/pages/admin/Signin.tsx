@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import Input from "../../components/Input.tsx";
 import Button from "../../components/Button.tsx";
 import { toast } from "sonner";
@@ -9,6 +9,8 @@ import { useSocket } from "../../lib/hooks.ts";
 import { Socket } from "socket.io-client";
 import { adminRegisterInput } from "../../zod/adminValidation.ts";
 import Cookies from 'js-cookie'
+import { ThemeContext } from "../../contexts/ThemeContext.tsx";
+import { ThemeContextInterface } from "../../lib/types.ts";
 
 export default function Signin() {
    const [username, setUsername] = useState("");
@@ -68,11 +70,9 @@ export default function Signin() {
          // set the admin info in localStorage
          setAdminInfo(data);
 
-         toast(message, {
-            className: "bg-gray-950 text-white",
-            duration: 5000,
-            icon: <ErrorIcons />
-         })
+         toast.success(message, {
+            duration: 5000
+         });
          navigate("/room");
       })
 
@@ -82,9 +82,13 @@ export default function Signin() {
       }
    }, [socket, setAdminInfo, navigate])
 
-   return <div className="flex justify-center h-screen items-center">
-      <div className="w-[500px] border border-gray-200 shadow-md px-10 py-14 rounded-lg">
-         <div className="flex flex-col gap-6">
+   const { darkTheme, toggleTheme } = useContext(
+      ThemeContext
+   ) as ThemeContextInterface;
+
+   return <div className="flex justify-center bg-bgColor text-bgColor h-screen items-center">
+      <div className={` ${!darkTheme ? "text-gray-950" : "text-white"} w-[500px] border border-gray-700 shadow-md px-10 py-14 rounded-lg`}>
+         <div className={`flex flex-col gap-6 `}>
             <div className={`${error !== "" ? "block vibrate" : "hidden"} border border-gray-400 rounded-lg text-center py-3 px-2 my-4 bg-red-700 text-sm text-white w-full shadow-lg`}>{error}</div>
             <div>
                <p className="mb-4">Username</p>
@@ -97,7 +101,7 @@ export default function Signin() {
                />
             </div>
             <div>
-               <p className="mb-4">Password</p>
+               <p className="mb-4 ">Password</p>
                <Input
                   type="password"
                   placeholder="Password"
@@ -110,7 +114,7 @@ export default function Signin() {
          <div className="flex flex-col text-end gap-3 mt-8">
             <Button
                onClick={onClickHandler}
-               className="py-3 px-4 text-white rounded-lg border-2 border-gray-200"
+               className="py-3 px-4 text-white rounded-lg border-2 border-gray-800"
             >
                Sign In
             </Button>

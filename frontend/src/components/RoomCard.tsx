@@ -2,6 +2,7 @@ import { Socket } from "socket.io-client"
 import { toast } from "sonner"
 import { ErrorIcons } from "../pages/admin/Register"
 import { useNavigate } from "react-router-dom"
+import { useEffect } from "react"
 
 export default function RoomCard({ name, roomId, status, socket }: {
    name: string,
@@ -10,6 +11,11 @@ export default function RoomCard({ name, roomId, status, socket }: {
    socket: Socket
 }) {
    const navigate = useNavigate();
+
+   useEffect(() => {
+      // TODO: make the a leaderboard if the operation of the quiz is a leader board
+   }, [])
+
    return <div onClick={() => {
       navigate(`${roomId}`)
    }} className="border relative border-gray-400 rounded-lg px-10 py-14 cursor-pointer shadow-lg hover:bg-gray-950 hover:text-white transition-transform duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg">

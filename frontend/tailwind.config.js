@@ -6,6 +6,10 @@ export default {
    ],
    theme: {
       extend: {
+         colors: {
+            bgColor: `var(--bgColor)`,
+            textColor: `var(--textColor)`,
+         }
       }
    },
    plugins: [],

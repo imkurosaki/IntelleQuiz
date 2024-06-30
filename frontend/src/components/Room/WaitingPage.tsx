@@ -14,9 +14,6 @@ export default function WaitingPage({ participants, user, noOfProblems }: {
 }) {
 
    return <div className="flex justify-center pt-20 pb-36">
-      <div className="mt-12">
-         <p className="text-sm text-gray-500 mb-5">1 of {noOfProblems.toString()} problems</p>
-      </div>
       <div className="w-[650px]">
          <div className="text-center">
             <div className="flex flex-col gap-4 items-center justify-center">

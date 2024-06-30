@@ -252,11 +252,12 @@ export class AdminManager {
             }
          });
 
-         const optionPromises = options.map((option: string) => {
+         const optionPromises = options.map((option: string, key: number) => {
             return prisma.option.create({
                data: {
                   choice: option,
-                  problemId: problem.id
+                  problemId: problem.id,
+                  index: key
                }
             })
          });
@@ -305,7 +306,11 @@ export class AdminManager {
                      select: {
                         id: true,
                         title: true,
-                        options: true,
+                        options: {
+                           orderBy: {
+                              index: 'asc'
+                           }
+                        },
                         answer: true,
                         countdown: true,
                         quizId: true
@@ -425,7 +430,11 @@ export class AdminManager {
                      select: {
                         id: true,
                         title: true,
-                        options: true,
+                        options: {
+                           orderBy: {
+                              index: 'asc'
+                           }
+                        },
                         answer: true,
                         countdown: true,
                         quizId: true,
