@@ -9,6 +9,7 @@ import { adminRegisterInput } from "../../zod/adminValidation.ts";
 import Cookies from 'js-cookie';
 import { ThemeContext } from "../../contexts/ThemeContext.tsx";
 import { ThemeContextInterface } from "../../lib/types.ts";
+import SourceCode from "../../components/SourceCode.tsx";
 
 export default function Register() {
    const [username, setUsername] = useState("");
@@ -96,6 +97,7 @@ export default function Register() {
             >Have already an account? Signin here</Link>
          </div>
       </div>
+      <SourceCode link={"https://github.com/imkurosaki/real-time-quiz"} />
    </div>
 }
 

@@ -14,6 +14,7 @@ export default function RoomCard({ name, roomId, status, socket }: {
 
    useEffect(() => {
       // TODO: make the a leaderboard if the operation of the quiz is a leader board
+
    }, [])
 
    return <div onClick={() => {

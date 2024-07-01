@@ -9,7 +9,7 @@ export default function Navbar() {
    const adminInfoState = useRecoilValue(adminInfo);
    const flagRoom = useRef<boolean>(false);
 
-   return <div className="flex bg-bgColor/30 backdrop-blur-sm sticky top-0 shadow-md z-50 justify-between items-center px-20 py-3 border-b border-b-gray-700">
+   return <div className="flex bg-bgColor/30 backdrop-blur-sm fixed w-full top-0 shadow-md z-50 justify-between items-center px-20 py-3 border-b border-b-gray-700">
       <p>Title</p>
       <div className="flex gap-10">
          {flagRoom.current === false

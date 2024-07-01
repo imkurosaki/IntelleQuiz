@@ -12,12 +12,20 @@
       --textColor: rgb(206, 207, 212);
       --bgColor: rgb(2, 6, 23);
    }
+
+   .svg-icon {
+      width: 50px;
+      /* Adjusted width */
+      height: 50px;
+      /* Adjusted height */
+   }
 }
 
 @layer components {
    .bounce-left {
       animation: bounce-left .9s linear both
    }
+
 
    @keyframes bounce-left {
       0% {

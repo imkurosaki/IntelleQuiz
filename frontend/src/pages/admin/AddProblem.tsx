@@ -11,6 +11,8 @@ import Cookies from 'js-cookie'
 import Leaderboard from "../../components/Room/Leaderboard.tsx";
 import { CopyClipboard } from "../../components/Accordion.tsx";
 import { Participant } from "../../components/Room/WaitingPage.tsx";
+import OptionEnd from "./OptionEnd.tsx";
+import LeaderBoardSkeleton from "../../components/Skeleton/LeaderboardSkeleton.tsx";
 
 export default function AddProblem() {
    const { roomIdParams } = useParams();
@@ -26,22 +28,26 @@ export default function AddProblem() {
    const [roomId, setRoomId] = useState("");
    const [status, setStatus] = useState("");
    const [leaderboard, setLeaderBoards] = useState<Participant[]>([])
+   const [isLoading, setIsLoading] = useState(true);
 
    useEffect(() => {
       if (!Cookies.get('token')) {
          navigate('/signin')
       }
 
-      socket.emit("roomId", { roomId: roomIdParams }, (data: any) => {
-         if (data.status === "error") {
+      socket.emit("roomId", { roomId: roomIdParams }, async (response: any) => {
+         if (response.status === "error") {
             navigate('/room');
             return;
          }
-         if (data.status === "FINISHED") {
-            setStatus(data.status);
+         if (response.room.status === "FINISHED") {
+            setStatus("FINISHED");
+            setLeaderBoards(response.leaderboard);
+            await new Promise(resolve => setTimeout(resolve, 2000));
          }
-         setQuizId(data.quizes[0].id);
-         setRoomId(data.quizes[0].roomId);
+         setIsLoading(false);
+         setQuizId(response.room.quizes[0].id);
+         setRoomId(response.room.quizes[0].roomId);
       })
 
       socket.on("success", ({ message }: {
@@ -133,11 +139,20 @@ export default function AddProblem() {
       isReady.current = false;
    }
 
-   if (status === "FINISHED") {
-      return <Leaderboard leaderboard={leaderboard} />
+   if (isLoading && status === "FINISHED") {
+      return <div className="pt-36">
+         <LeaderBoardSkeleton />
+      </div>
    }
 
-   return <div className="flex justify-center">
+   if (status === "FINISHED") {
+      return <div className="pt-20">
+         <Leaderboard leaderboard={leaderboard} />
+         <OptionEnd socket={socket} roomId={roomId} />
+      </div>
+   }
+
+   return <div className="flex justify-center pt-10">
       <div className="w-[1000px] py-20">
          <div className="flex gap-3">
             <p className="text-sm text-gray-500">Room Id: </p>

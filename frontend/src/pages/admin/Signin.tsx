@@ -11,6 +11,8 @@ import { adminRegisterInput } from "../../zod/adminValidation.ts";
 import Cookies from 'js-cookie'
 import { ThemeContext } from "../../contexts/ThemeContext.tsx";
 import { ThemeContextInterface } from "../../lib/types.ts";
+import SourceCode from "../../components/SourceCode.tsx";
+import gitHub from "../../assets/github-mark.svg";
 
 export default function Signin() {
    const [username, setUsername] = useState("");
@@ -124,6 +126,7 @@ export default function Signin() {
             >Don't an account yet? Register here</Link>
          </div>
       </div>
+      <SourceCode link={"https://github.com/imkurosaki/real-time-quiz"} icon={gitHub} />
    </div>
 }
 

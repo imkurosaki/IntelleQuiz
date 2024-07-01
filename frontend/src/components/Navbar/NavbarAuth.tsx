@@ -10,7 +10,7 @@ export default function NavbarAuth() {
    return <div className="w-full flex fixed top-0 justify-end pe-20 z-50 bg-bgColor pt-6">
       <div
          onClick={toggleTheme}
-         className={`flex justify-between cursor-pointer py-4 px-2 `}>
+         className={`flex justify-between cursor-pointer hover:drop-shadow-[-0.2rem_0_1rem_#f0f0f0] py-4 px-2 `}>
          {darkTheme
             ?
             <svg

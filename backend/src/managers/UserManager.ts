@@ -54,8 +54,8 @@ export class UserManager {
       socket.on("roomId", async ({ roomId }: {
          roomId: string
       }, callback: CallableFunction) => {
-         const room = await this.adminManager.getRoom(socket, roomId)
-         return callback(room);
+         const response = await this.adminManager.getRoom(socket, roomId)
+         return callback(response);
       })
 
       socket.on("getMyRooms", ({ }, callback: CallableFunction) => {

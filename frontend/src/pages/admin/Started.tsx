@@ -13,7 +13,7 @@ import Cookies from 'js-cookie';
 import { ErrorIcons } from "./Register.tsx";
 import { toast } from "sonner";
 import { CopyClipboard } from "../../components/Accordion.tsx";
-import { removeCookie } from "../../lib/index.ts";
+import OptionEnd from "./OptionEnd.tsx";
 
 export type AdminProblem = {
    title: string;
@@ -109,7 +109,7 @@ export default function Started() {
 
 
    if (status === "LEADERBOARD") {
-      return <div className="flex flex-col items-center">
+      return <div className="flex flex-col items-center pt-24">
          <Leaderboard leaderboard={leaderboard} />
          <div className="mt-12 text-center">
             <p className="text-sm mb-5 text-gray-500">{currentProblem} of {noOfProblems} problems</p>
@@ -143,38 +143,13 @@ export default function Started() {
    }
 
    if (status === "FINISHED") {
-      return <div>
+      return <div className="pt-24">
          <EndRoom leaderboard={leaderboard} />
-         <div className="flex gap-4 flex-col items-center mt-20">
-            <p className="text-sm">The quiz is over, want to add more quiz?</p>
-            <div className="flex gap-4">
-               <button className="bg-gray-100 hover:bg-gray-50 border border-gray-900 px-8 py-3 text-black rounded-md"
-                  onClick={() => {
-                     socket.emit("leaveRoom", {
-                        roomId
-                     });
-                     removeCookie('token');
-                     navigate("/signin")
-                  }}
-               >
-                  Logout
-               </button>
-               <Button className="bg-gray-900 border border-gray-700 hover:bg-gray-800 px-8 py-3 text-white rounded-md"
-                  onClick={() => {
-                     socket.emit("leaveRoom", {
-                        roomId
-                     })
-                     navigate("/room")
-                  }}
-               >
-                  Yes, please
-               </Button>
-            </div>
-         </div>
+         <OptionEnd socket={socket} roomId={roomId} />
       </div>
    }
 
-   return <div className="flex justify-center">
+   return <div className="flex justify-center pt-24">
       <div className="w-[700px] py-16 pb-8 relative">
          <div>
             <div className="flex gap-3 items-center">

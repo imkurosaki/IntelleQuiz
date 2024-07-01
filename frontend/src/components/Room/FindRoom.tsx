@@ -10,6 +10,7 @@ import { StatusCircle } from "../RoomCard";
 import FindRoomSkeleton from "../Skeleton/FindRoomSkeleton";
 import { ThemeContext } from "../../contexts";
 import { ThemeContextInterface } from "../../lib/types";
+import SourceCode from "../SourceCode";
 
 export default function FindRoom() {
    const navigate = useNavigate();
@@ -46,7 +47,7 @@ export default function FindRoom() {
       };
    }, [socket, navigate])
 
-   return <div className="px-32 py-10">
+   return <div className="px-32 pb-10 pt-32">
       <div className="flex justify-center mb-16">
          <div className="w-[400px]">
             <JoinPage socket={socket} />

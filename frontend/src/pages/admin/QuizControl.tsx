@@ -46,7 +46,7 @@ export default function QuizControl({ isReady, quizId, roomId }: {
          </Button>
          <Button
             onClick={startManually}
-            className={`${darkTheme && !isReady ? "bg-white text-gray-900 hover:bg-white" : ""} py-3 px-6 text-white rounded-lg border-2 border-gray-200`}
+            className={`${darkTheme && !isReady ? "bg-white text-gray-900 hover:bg-white" : "text-white"} py-3 px-6 rounded-lg border-2 border-gray-200`}
             disabled={isReady}
          >
             Start

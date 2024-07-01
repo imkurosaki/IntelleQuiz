@@ -12,6 +12,7 @@ import RoomCard from "../../components/RoomCard.tsx";
 import RoomSkeleton from "../../components/Skeleton/RoomSkeleton.tsx";
 import { ThemeContextInterface } from "../../lib/types.ts";
 import { ThemeContext } from "../../contexts/ThemeContext.tsx";
+import SourceCode from "../../components/SourceCode.tsx";
 
 export default function AddRoom() {
    const [disable, setDisable] = useState(true);
@@ -105,7 +106,7 @@ export default function AddRoom() {
       };
    }, [socket, navigate])
 
-   return <div className="px-20 py-16">
+   return <div className="px-20 pb-16 pt-28">
       <div className="w-[500px]">
          <div className="border border-gray-700 shadow-md px-10 py-14 rounded-lg">
             <div>

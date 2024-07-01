@@ -139,6 +139,7 @@ export class AdminManager {
    }
 
    async getRoom(socket: Socket, roomId: string) {
+      let leaderboard: any = [];
       try {
          const room = await prisma.room.findUnique({
             where: {
@@ -152,9 +153,12 @@ export class AdminManager {
          });
          if (room?.status === "FINISHED") {
             const quizId = room.quizes[0].id;
-            this.getLeaderboard(quizId, roomId, 0);
+            leaderboard = await this.getLeaderboard(quizId, roomId, 0);
          }
-         return room;
+         return {
+            leaderboard,
+            room
+         };
       } catch (e: any) {
          return {
             status: 'error',
@@ -526,7 +530,6 @@ export class AdminManager {
             })
             this.getLeaderboard(quizId, roomId, problem.countdown);
          });
-
          return problem.countdown
       } catch (e: any) {
          socket.emit("error", {
@@ -589,31 +592,35 @@ export class AdminManager {
       }
    }
 
-   getLeaderboard(quizId: string, roomId: string, countdown: number) {
-      setTimeout(async () => {
-         const leaderboard: Leaderboard[] = await prisma.points.findMany({
-            where: {
-               quizId: quizId
-            },
-            orderBy: {
-               points: 'desc'
-            },
-            select: {
-               points: true,
-               participant: {
-                  select: {
-                     id: true,
-                     username: true,
-                     image: true
+   async getLeaderboard(quizId: string, roomId: string, countdown: number) {
+      let leaderboard: Leaderboard[] = [];
+      return await new Promise((resolve: any) => {
+         setTimeout(async () => {
+            leaderboard = await prisma.points.findMany({
+               where: {
+                  quizId: quizId
+               },
+               orderBy: {
+                  points: 'desc'
+               },
+               select: {
+                  points: true,
+                  participant: {
+                     select: {
+                        id: true,
+                        username: true,
+                        image: true
+                     }
                   }
                }
-            }
-         })
-         IoManager.io.to(roomId).emit("leaderboard", {
-            leaderboard: leaderboard,
-            status: "LEADERBOARD",
-         });
-      }, countdown * 1000)
+            })
+            IoManager.io.to(roomId).emit("leaderboard", {
+               leaderboard: leaderboard,
+               status: "LEADERBOARD",
+            });
+            resolve(leaderboard)
+         }, countdown * 1000);
+      });
    }
 
    async getNoOfProblems(roomId: string, quizId: string, socket: Socket) {

@@ -58,7 +58,7 @@ export default function Quizes({ quizId, pointsId, problem, roomId, socket, curr
       setChange("0")
    }, [problem])
 
-   return <div className="flex justify-center">
+   return <div className="flex justify-center pt-24">
       <div className="w-[700px] py-16 pb-8 relative">
          <div>
             <div className="flex gap-3 items-center">
