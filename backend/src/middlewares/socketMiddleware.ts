@@ -26,24 +26,24 @@ export const socketMiddleware = async (socket: Socket, next: (err?: Error) => vo
 
       const decodedPayload: any = jwt.verify(tokenToVerify, process.env.JWT_SECRET);
 
-      if (!decodedPayload.adminId) {
+      if (!decodedPayload.userId) {
          return next(new Error('Unauthorized token'));
       }
 
-      const isAdminIdExist: { id: string } | null = await prisma.admin.findFirst({
+      const isUserIdExist: { id: string } | null = await prisma.user.findFirst({
          where: {
-            id: decodedPayload.adminId
+            id: decodedPayload.userId
          },
          select: {
             id: true
          }
       })
 
-      if (!isAdminIdExist) {
+      if (!isUserIdExist) {
          return next(new Error('Unauthorized token'))
       }
 
-      socket.decoded = { id: isAdminIdExist.id }
+      socket.decoded = { id: isUserIdExist.id }
       next();
    } catch (err: any) {
       return next(new Error('Unauthorized token'));

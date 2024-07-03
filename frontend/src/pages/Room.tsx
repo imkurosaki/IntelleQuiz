@@ -9,7 +9,7 @@ import { Socket } from "socket.io-client";
 import { participantInfo } from "../store/participant";
 import { useRecoilState, useRecoilValue } from "recoil";
 import Cookies from "js-cookie";
-import { AdminInfo, adminInfo, currentRoomJoined } from "../store/admin";
+import { UserInfo, userInfoAtom, currentRoomJoined } from "../store/user";
 
 export default function Room() {
    const [roomId, setRoomId] = useState("");
@@ -33,7 +33,7 @@ export default function Room() {
    })
    const socket: Socket = useSocket(Cookies.get('token') || "Bearer ");
    const [participantInfoAtom, setParticipantAtom] = useRecoilState(participantInfo);
-   const adminInfoState = useRecoilValue<AdminInfo>(adminInfo);
+   const userInfoState = useRecoilValue<UserInfo>(userInfoAtom);
    const [currentProblem, setCurrentProblem] = useState(0);
    const [noOfProblems, setNoOfProblems] = useState(0);
    const currentRoomJoinedState = useRecoilValue(currentRoomJoined);
@@ -113,7 +113,7 @@ export default function Room() {
    if (status === "WAITING") {
       if (userInfo.id === "") {
          participants.map((participant: Participant) => {
-            if (participant.username === adminInfoState.username) {
+            if (participant.username === userInfoState.username) {
                setUserInfo(participant);
                return;
             }
@@ -123,7 +123,7 @@ export default function Room() {
       return <WaitingPage
          user={userInfo}
          participants={participants.filter((participant: Participant) => {
-            return participant.username !== adminInfoState.username
+            return participant.username !== userInfoState.username
          })}
          noOfProblems={noOfProblems || 0}
       />

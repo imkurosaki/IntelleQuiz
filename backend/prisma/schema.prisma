@@ -13,7 +13,7 @@ datasource db {
    url      = env("DATABASE_URL")
 }
 
-model Admin {
+model User {
    id         String   @id @default(uuid())
    username   String
    email      String   @unique
@@ -35,11 +35,11 @@ model Room {
    createdAt DateTime @default(now())
    updatedAt DateTime @updatedAt
 
-   participants Admin[] @relation("UserRooms")
+   participants User[] @relation("UserRooms")
    quizes       Quiz[]
 
-   adminId String
-   admin   Admin  @relation("CreatedRooms", fields: [adminId], references: [id], onDelete: Cascade)
+   userId String
+   user   User   @relation("CreatedRooms", fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Quiz {
@@ -57,7 +57,7 @@ model Points {
    id     String @id @default(uuid())
    points Int    @default(0)
 
-   participant   Admin  @relation(fields: [participantId], references: [id], onDelete: Cascade)
+   participant   User   @relation(fields: [participantId], references: [id], onDelete: Cascade)
    participantId String
 
    quiz   Quiz   @relation(fields: [quizId], references: [id], onDelete: Cascade)

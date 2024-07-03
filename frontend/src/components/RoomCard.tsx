@@ -1,6 +1,6 @@
 import { Socket } from "socket.io-client"
 import { toast } from "sonner"
-import { ErrorIcons } from "../pages/admin/Register"
+import { ErrorIcons } from "../pages/user/Register"
 import { useNavigate } from "react-router-dom"
 
 export default function RoomCard({ name, roomId, status, socket }: {

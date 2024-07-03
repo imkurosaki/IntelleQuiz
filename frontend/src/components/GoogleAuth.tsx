@@ -1,10 +1,17 @@
+import { useContext } from "react";
+import { ThemeContext } from "../contexts";
+import { ThemeContextInterface } from "../lib/types";
 
 
 export default function GoogleAuth() {
+   const { darkTheme, toggleTheme } = useContext(
+      ThemeContext
+   ) as ThemeContextInterface;
+
    return <button onClick={() => {
       window.location.href = 'http://localhost:3000/auth/google'
    }}
-      className="grid grid-cols-12 items-center border border-gray-800 rounded-lg text-center py-2 px-6 font-light hover:bg-gray-800"
+      className={`${darkTheme ? "hover:bg-gray-800" : "hover:bg-gray-200"} grid grid-cols-12 items-center border border-gray-800 rounded-lg text-center py-2 px-6 font-light `}
    >
       <svg
          className="h-10 w-10 col-span-1"

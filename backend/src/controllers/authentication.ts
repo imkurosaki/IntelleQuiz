@@ -8,7 +8,7 @@ const handleSocialSignIn = async (req: any, res: Response) => {
 
       return res
          .status(200)
-         .cookie('token', `Bearer ${generateToken({ adminId: userId })}`)
+         .cookie('token', `Bearer ${generateToken({ userId: userId })}`)
          .redirect('http://localhost:5174/room');
    } catch (e: any) {
       console.log(e);

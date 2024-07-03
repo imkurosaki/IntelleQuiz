@@ -8,7 +8,7 @@ passport.serializeUser((user: any, done: (err: any, id?: string) => void) => {
 
 passport.deserializeUser(async (id: string, next: any) => {
    try {
-      const user = await prisma.admin.findFirst({
+      const user = await prisma.user.findFirst({
          where: {
             id: id
          }
@@ -35,7 +35,7 @@ passport.use(new GoogleStrategy(
    async (accessToken: string, refreshToken: string, profile: any, next: any) => {
       try {
          console.log("passport use " + profile._json.email)
-         const user = await prisma.admin.findUnique({
+         const user = await prisma.user.findUnique({
             where: {
                email: profile._json.email
             }
@@ -51,7 +51,7 @@ passport.use(new GoogleStrategy(
             }
          }
 
-         const newUser = await prisma.admin.create({
+         const newUser = await prisma.user.create({
             data: {
                username: profile._json.name,
                email: profile._json.email,

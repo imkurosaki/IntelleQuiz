@@ -1,12 +1,12 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useSocket } from "../../lib/hooks";
+import { useSocket } from "../../lib/hooks.ts";
 import { Socket } from "socket.io-client";
-import Input from "../../components/Input";
-import Button from "../../components/Button";
+import Input from "../../components/Input.tsx";
+import Button from "../../components/Button.tsx";
 import { toast } from "sonner";
-import { ErrorIcons } from "./Register";
-import QuizControl from "./QuizControl";
+import { ErrorIcons } from "./Register.tsx";
+import QuizControl from "./QuizControl.tsx";
 import Cookies from 'js-cookie'
 import Leaderboard from "../../components/Room/Leaderboard.tsx";
 import { CopyClipboard } from "../../components/Accordion.tsx";

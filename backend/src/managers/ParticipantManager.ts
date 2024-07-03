@@ -11,7 +11,7 @@ export class ParticipantManager {
       const room = await prisma.room.findFirst({
          where: {
             id: roomId,
-            adminId: {
+            userId: {
                not: socket.decoded.id
             }
          },
@@ -23,7 +23,7 @@ export class ParticipantManager {
                }
             },
             status: true,
-            adminId: true
+            userId: true
          }
       });
 
@@ -133,7 +133,7 @@ export class ParticipantManager {
          return;
       }
 
-      if (quiz.room.adminId === socket.decoded.id) {
+      if (quiz.room.userId === socket.decoded.id) {
          socket.emit("error", {
             message: "Admin is not allowed to submit an answer"
          })
@@ -160,7 +160,7 @@ export class ParticipantManager {
    }
 
    async getRecentlyJoinedRooms(socket: Socket) {
-      const rooms = await prisma.admin.findFirst({
+      const rooms = await prisma.user.findFirst({
          where: {
             id: socket.decoded.id
          },
@@ -184,7 +184,7 @@ export class ParticipantManager {
                   name: true,
                   status: true,
                   createdAt: true,
-                  admin: {
+                  user: {
                      select: {
                         username: true,
                      }

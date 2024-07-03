@@ -3,28 +3,29 @@ import Input from "../../components/Input.tsx";
 import Button from "../../components/Button.tsx";
 import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
-import { useSetRecoilState } from "recoil";
-import { AdminInfo, adminInfo } from "../../store/admin.ts";
 import { useSocket } from "../../lib/hooks.ts";
 import { Socket } from "socket.io-client";
-import { adminRegisterInput, signinInput } from "../../zod/adminValidation.ts";
-import Cookies from 'js-cookie'
+import Cookies from 'js-cookie';
 import { ThemeContext } from "../../contexts/ThemeContext.tsx";
 import { ThemeContextInterface } from "../../lib/types.ts";
 import SourceCode from "../../components/SourceCode.tsx";
-import gitHub from "../../assets/github-mark.svg";
+import { registerInput } from "../../zod/authValidation.ts";
 import GoogleAuth from "../../components/GoogleAuth.tsx";
+import Title from "../../components/Navbar/Title.tsx";
+import LoadingCircle from "../../components/LoadingCircle.tsx";
 
-export default function Signin() {
-   const [email, setEmail] = useState("");
+export default function Register() {
+   const [username, setUsername] = useState("");
    const [password, setPassword] = useState("");
+   const [email, setEmail] = useState("");
    const navigate = useNavigate();
-   const setAdminInfo = useSetRecoilState<AdminInfo>(adminInfo);
    const socket: Socket = useSocket("Bearer ");
    const [error, setError] = useState("");
+   const [isLoading, setLoading] = useState(true);
 
-   const onClickHandler = () => {
-      const validation: any = signinInput.safeParse({ email, password });
+   const onClickHandler = async () => {
+      setLoading(false);
+      const validation: any = registerInput.safeParse({ username, email, password });
       if (!validation.success) {
          const errors: any = JSON.parse(validation.error.message);
          setError(errors[0].message);
@@ -32,12 +33,29 @@ export default function Signin() {
          setTimeout(() => {
             setError("")
          }, 3000)
+         setLoading(true);
          return;
       }
 
-      socket.emit("SigninAdmin", {
+      socket.emit("RegisterUser", {
+         username,
          email,
          password
+      }, async ({ status, message }: { status: string, message: string }) => {
+         if (status === "error") {
+            toast(message, {
+               className: "bg-gray-950 text-white",
+               duration: 5000,
+               icon: <ErrorIcons />
+            })
+            setLoading(true);
+         } else {
+            setLoading(true);
+            toast.success(message, {
+               duration: 5000,
+            })
+            navigate("/signin")
+         }
       });
    }
 
@@ -45,57 +63,32 @@ export default function Signin() {
       if (Cookies.get('token')) {
          navigate('/room')
       }
-      socket.on("error", ({ error }: { error: string }) => {
-         toast(error, {
-            className: "bg-gray-950 text-white",
-            duration: 5000,
-            icon: <ErrorIcons />
-         })
-      });
-
-      socket.on("signed", ({ message, data, token }: {
-         message: string,
-         data: AdminInfo,
-         token: string
-      }) => {
-         setAdminInfo({
-            id: data.id,
-            username: data.username,
-            email: data.email,
-            image: data.image
-         })
-         // set the cookie
-         Cookies.set('token', token, {
-            expires: 5,
-            secure: true,
-            sameSite: 'Strict'
-         });
-
-         // set the admin info in localStorage
-         setAdminInfo(data);
-
-         toast.success(message, {
-            duration: 5000
-         });
-         navigate("/room");
-      })
-
-      return () => {
-         socket.off("error")
-         socket.off("signed")
-      }
-   }, [socket, setAdminInfo, navigate])
+   }, [navigate]);
 
    const { darkTheme, toggleTheme } = useContext(
       ThemeContext
    ) as ThemeContextInterface;
 
-   return <div className="flex justify-center bg-bgColor text-bgColor h-screen items-center">
-      <div className={` ${!darkTheme ? "text-gray-950" : "text-white"} w-[500px] border border-gray-700 shadow-md px-10 py-14 rounded-lg`}>
+   return <div className="flex flex-col justify-center bg-bgColor text-bgColor h-screen items-center">
+      <div className="mb-10 z-10">
+         <Title />
+      </div>
+      <div className={` ${!darkTheme ? "text-gray-950" : "text-white"} w-[500px] border border-gray-700 shadow-md px-10 py-8 rounded-lg`}>
+         <p className="text-[22px] text-center mb-4">Create an account</p>
          <GoogleAuth />
          <p className="text-sm text-gray-500 text-center mt-5 mb-8">or contiue with email</p>
-         <div className={`flex flex-col gap-6 `}>
+         <div className="flex flex-col gap-6">
             <div className={`${error !== "" ? "block vibrate" : "hidden"} border border-gray-400 rounded-lg text-center py-3 px-2 my-4 bg-red-700 text-sm text-white w-full shadow-lg`}>{error}</div>
+            <div>
+               <p className="mb-4">Username</p>
+               <Input
+                  type="text"
+                  placeholder=""
+                  onChange={(e: any) => {
+                     setUsername(e.target.value);
+                  }}
+               />
+            </div>
             <div>
                <p className="mb-4">Email</p>
                <Input
@@ -107,10 +100,10 @@ export default function Signin() {
                />
             </div>
             <div>
-               <p className="mb-4 ">Password</p>
+               <p className="mb-4">Password</p>
                <Input
                   type="password"
-                  placeholder="Password"
+                  placeholder=""
                   onChange={(e: any) => {
                      setPassword(e.target.value);
                   }}
@@ -121,13 +114,19 @@ export default function Signin() {
             <Button
                onClick={onClickHandler}
                className="py-3 px-4 text-white rounded-lg border-2 border-gray-800"
+               disabled={!isLoading}
             >
-               Sign In
+               {isLoading
+                  ?
+                  <p>Register</p>
+                  :
+                  <LoadingCircle />
+               }
             </Button>
             <Link
-               to={'/register'}
+               to={'/signin'}
                className="hover:underline"
-            >Do not have an account yet? Sign Up </Link>
+            >Have already an account? Sign In </Link>
          </div>
       </div>
       <SourceCode link={"https://github.com/imkurosaki/real-time-quiz"} />

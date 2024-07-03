@@ -1,10 +1,10 @@
-import Input from "../../components/Input";
-import Button from "../../components/Button";
+import Input from "../../components/Input.tsx";
+import Button from "../../components/Button.tsx";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { ErrorIcons } from "./Register";
-import { useSocket } from "../../lib/hooks";
+import { ErrorIcons } from "./Register.tsx";
+import { useSocket } from "../../lib/hooks.ts";
 import { Socket } from "socket.io-client";
 import { adminAddRoomInput } from "../../zod/adminValidation.ts";
 import Cookies from 'js-cookie'
@@ -15,7 +15,7 @@ import { ThemeContext } from "../../contexts/ThemeContext.tsx";
 import SourceCode from "../../components/SourceCode.tsx";
 import axios from "axios";
 import { getCookie } from "../../lib/index.ts";
-import { AdminInfo, adminInfo } from "../../store/admin.ts";
+import { UserInfo, userInfoAtom } from "../../store/user.ts";
 import { useSetRecoilState } from "recoil";
 
 export default function AddRoom() {
@@ -29,7 +29,7 @@ export default function AddRoom() {
    const { darkTheme, toggleTheme } = useContext(
       ThemeContext
    ) as ThemeContextInterface;
-   const setAdminInfoState = useSetRecoilState(adminInfo);
+   const setUserInfoState = useSetRecoilState(userInfoAtom);
 
    const submitHandler = () => {
       const validation: any = adminAddRoomInput.safeParse({ roomName });
@@ -118,7 +118,7 @@ export default function AddRoom() {
                }
             })
 
-            setAdminInfoState(response.data);
+            setUserInfoState(response.data);
          } catch (error: any) {
             toast(error.response.data.message, {
                className: "bg-gray-950 text-white",

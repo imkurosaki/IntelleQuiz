@@ -13,13 +13,13 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
    try {
       const decodedPayload: any = jwt.verify(token, process.env.JWT_SECRET || "no-secret")
 
-      if (!decodedPayload.adminId) {
+      if (!decodedPayload.userId) {
          throw new Error;
       }
 
-      const user: any = await prisma.admin.findUnique({
+      const user: any = await prisma.user.findUnique({
          where: {
-            id: decodedPayload.adminId
+            id: decodedPayload.userId
          }
       });
 

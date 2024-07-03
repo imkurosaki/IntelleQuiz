@@ -15,7 +15,7 @@ export class UserManager {
    }
 
    addUser(socket: Socket) {
-      socket.on("RegisterAdmin", async ({ username, email, password }: {
+      socket.on("RegisterUser", async ({ username, email, password }: {
          username: string,
          email: string,
          password: string,
@@ -26,7 +26,7 @@ export class UserManager {
             })
             return;
          }
-         const responseData = await this.adminManager.registerAdmin(username, email, password);
+         const responseData = await this.adminManager.registerUser(username, email, password);
          callback(responseData);
       })
 
@@ -34,11 +34,11 @@ export class UserManager {
          console.log("You are here!")
       })
 
-      socket.on("SigninAdmin", async ({ email, password }: {
+      socket.on("SigninUser", async ({ email, password }: {
          email: string,
          password: string
       }) => {
-         this.adminManager.signinAdmin(email, password, socket)
+         this.adminManager.signinUser(email, password, socket)
       });
 
       socket.on("addRoom", ({ roomName }: {

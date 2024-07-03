@@ -1,16 +1,17 @@
 import { useNavigate } from "react-router-dom";
 import { useRecoilValue } from "recoil";
 import { useRef } from "react";
-import { adminInfo } from "../../store/admin";
+import { userInfoAtom } from "../../store/user.ts";
 import DropDownProfile from "./DropDownProfile";
+import Title from "./Title.tsx";
 
 export default function Navbar() {
    const navigate = useNavigate();
-   const adminInfoState = useRecoilValue(adminInfo);
+   const userInfoState = useRecoilValue(userInfoAtom);
    const flagRoom = useRef<boolean>(false);
 
    return <div className="flex bg-bgColor/30 backdrop-blur-sm fixed w-full top-0 shadow-md z-50 justify-between items-center px-20 py-3 border-b border-b-gray-700">
-      <p>Title</p>
+      <Title />
       <div className="flex gap-10">
          {flagRoom.current === false
             ?
@@ -32,7 +33,7 @@ export default function Navbar() {
                Add Room
             </button>
          }
-         <DropDownProfile image={adminInfoState.image.toString()} email={adminInfoState.email} />
+         <DropDownProfile image={userInfoState.image.toString()} email={userInfoState.email} />
       </div>
    </div>
 }

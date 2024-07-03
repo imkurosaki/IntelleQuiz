@@ -4,7 +4,7 @@ import { useSocket } from "../../lib/hooks";
 import Cookies from "js-cookie";
 import { useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ErrorIcons } from "../../pages/admin/Register";
+import { ErrorIcons } from "../../pages/user/Register";
 import JoinPage from "./JoinPage";
 import { StatusCircle } from "../RoomCard";
 import FindRoomSkeleton from "../Skeleton/FindRoomSkeleton";
@@ -70,7 +70,7 @@ export default function FindRoom() {
                         status={room.status}
                         quizId={room.quizes[0].id}
                         score={room.quizes[0].points[0].points}
-                        adminName={room.admin.username}
+                        userName={room.user.username}
                      />
                   ))
                )}
@@ -80,13 +80,13 @@ export default function FindRoom() {
    </div>
 }
 
-export function JoinRoomCard({ roomName, roomId, quizId, status, score, adminName }: {
+export function JoinRoomCard({ roomName, roomId, quizId, status, score, userName }: {
    roomName: string,
    roomId: string,
    quizId: string,
    status: string,
    score: number,
-   adminName: string
+   userName: string
 }) {
    const navigate = useNavigate();
    const { darkTheme, toggleTheme } = useContext(
@@ -114,7 +114,7 @@ export function JoinRoomCard({ roomName, roomId, quizId, status, score, adminNam
       </div>
       <div>
          <p className="text-sm">Your score: <span className="font-bold text-lg">{score}</span></p>
-         <p className="text-xs">Quiz by: <span className="capitalize text-xs font-semibold">{adminName}</span></p>
+         <p className="text-xs">Quiz by: <span className="capitalize text-xs font-semibold">{userName}</span></p>
       </div>
    </div>
 }

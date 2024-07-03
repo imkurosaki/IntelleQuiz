@@ -1,21 +1,21 @@
 import { useEffect, useState } from "react"
-import { useSocket } from "../../lib/hooks"
+import { useSocket } from "../../lib/hooks.ts"
 import { Socket } from "socket.io-client";
-import { CountdownCircle } from "../../components/CountdownCircle";
-import Button from "../../components/Button";
-import { Participant } from "../../components/Room/WaitingPage";
-import Leaderboard from "../../components/Room/Leaderboard";
+import { CountdownCircle } from "../../components/CountdownCircle.tsx";
+import Button from "../../components/Button.tsx";
+import { Participant } from "../../components/Room/WaitingPage.tsx";
+import Leaderboard from "../../components/Room/Leaderboard.tsx";
 import { useRecoilState } from "recoil";
-import { AdminInfo, adminInfo } from "../../store/admin.ts";
+import { UserInfo, userInfoAtom } from "../../store/user.ts";
 import { useNavigate } from "react-router-dom";
-import EndRoom from "../../components/Room/EndRoom";
+import EndRoom from "../../components/Room/EndRoom.tsx";
 import Cookies from 'js-cookie';
 import { ErrorIcons } from "./Register.tsx";
 import { toast } from "sonner";
 import { CopyClipboard } from "../../components/Accordion.tsx";
 import OptionEnd from "./OptionEnd.tsx";
 
-export type AdminProblem = {
+export type UserProblem = {
    title: string;
    id: string;
    options: Option[];
@@ -32,7 +32,7 @@ export type Option = {
 
 export default function Started() {
    const socket: Socket = useSocket(Cookies.get('token') || "Bearer ");
-   const [problem, setProblem] = useState<AdminProblem>({
+   const [problem, setProblem] = useState<UserProblem>({
       id: "",
       title: "",
       options: [],
@@ -43,7 +43,7 @@ export default function Started() {
    const [operation, setOperation] = useState<string>("manually");
    const [status, setStatus] = useState("")
    const [leaderboard, setLeaderBoards] = useState<Participant[]>([])
-   const [adminInfoAtom] = useRecoilState<AdminInfo>(adminInfo);
+   const [userInfoAtomState] = useRecoilState<UserInfo>(userInfoAtom);
    const navigate = useNavigate();
    const [roomId, setRoomId] = useState("");
    const [noOfProblems, setNoOfProblems] = useState(0);
@@ -55,7 +55,7 @@ export default function Started() {
       }
 
       socket.on("adminProblem", ({ problem, currentProblem, roomId, status, noOfProblems, index }: {
-         problem: AdminProblem,
+         problem: UserProblem,
          roomId: string,
          status: string,
          noOfProblems: number,
@@ -105,7 +105,7 @@ export default function Started() {
          socket.off("leaderboard");
          socket.off("error");
       }
-   }, [socket, adminInfoAtom, navigate])
+   }, [socket, userInfoAtomState, navigate])
 
 
    if (status === "LEADERBOARD") {

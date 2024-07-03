@@ -35,7 +35,6 @@ export const MAX_TIME_SEC = 10;
 const MAXPOINTS = 200;
 
 export class AdminManager {
-   // public admin?: string;
    private rooms: Room[];
 
    constructor() {
@@ -60,7 +59,7 @@ export class AdminManager {
       const room = await prisma.room.findFirst({
          where: {
             name: roomName,
-            adminId: socket.decoded.id
+            userId: socket.decoded.id
          }
       });
 
@@ -77,7 +76,7 @@ export class AdminManager {
             data: {
                id: roomId,
                name: roomName,
-               adminId: socket.decoded.id,
+               userId: socket.decoded.id,
             }
          });
          await prisma.quiz.create({
@@ -91,7 +90,7 @@ export class AdminManager {
 
          const rooms = await prisma.room.findMany({
             where: {
-               adminId: socket.decoded.id
+               userId: socket.decoded.id
             },
             orderBy: {
                createdAt: 'desc'
@@ -122,7 +121,7 @@ export class AdminManager {
 
          const rooms = await prisma.room.findMany({
             where: {
-               adminId: socket.decoded.id
+               userId: socket.decoded.id
             }
          })
          socket.emit("getMyRooms", rooms);
@@ -144,7 +143,7 @@ export class AdminManager {
          const room = await prisma.room.findUnique({
             where: {
                id: roomId,
-               adminId: socket.decoded.id
+               userId: socket.decoded.id
             },
             select: {
                quizes: true,
@@ -170,7 +169,7 @@ export class AdminManager {
    async getRooms(socket: Socket) {
       const rooms = await prisma.room.findMany({
          where: {
-            adminId: socket.decoded.id
+            userId: socket.decoded.id
          },
          orderBy: {
             createdAt: 'desc'
@@ -186,11 +185,11 @@ export class AdminManager {
       return rooms;
    }
 
-   async registerAdmin(username: string, email: string, password: string) {
+   async registerUser(username: string, email: string, password: string) {
       try {
          const salt = bcrypt.genSaltSync(10);
          const hashPassword = bcrypt.hashSync(password, salt);
-         const result = await prisma.admin.create({
+         const result = await prisma.user.create({
             data: {
                username: username,
                email: email,
@@ -211,20 +210,20 @@ export class AdminManager {
       }
    }
 
-   async signinAdmin(email: string, password: string, socket: Socket) {
+   async signinUser(email: string, password: string, socket: Socket) {
       try {
-         const admin = await prisma.admin.findFirst({
+         const user = await prisma.user.findFirst({
             where: {
                email: email
             }
          });
 
-         if (!admin) {
+         if (!user) {
             socket.emit("error", {
                error: "Username is not found"
             });
             return;
-         } else if (!bcrypt.compareSync(password, admin.password)) {
+         } else if (!bcrypt.compareSync(password, user.password)) {
             socket.emit("error", {
                error: "Password is not match"
             });
@@ -233,12 +232,12 @@ export class AdminManager {
             socket.emit("signed", {
                message: "You've successfully login",
                data: {
-                  id: admin.id,
-                  username: admin.username,
-                  image: admin.image,
-                  email: admin.email
+                  id: user.id,
+                  username: user.username,
+                  image: user.image,
+                  email: user.email
                },
-               token: `Bearer ${generateToken({ adminId: admin.id })}`
+               token: `Bearer ${generateToken({ userId: user.id })}`
             })
          }
       } catch (e: any) {

@@ -5,9 +5,9 @@ import { useState } from "react";
 import { Socket } from "socket.io-client";
 import { joinInput } from "../../zod/userValidation";
 import { toast } from "sonner";
-import { ErrorIcons } from "../../pages/admin/Register";
+import { ErrorIcons } from "../../pages/user/Register";
 import { useNavigate } from "react-router-dom";
-import { currentRoomJoined } from "../../store/admin";
+import { currentRoomJoined } from "../../store/user";
 
 export default function JoinPage({ socket }: {
    socket: Socket

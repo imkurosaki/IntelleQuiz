@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { Socket } from "socket.io-client";
 import Button from "../Button";
 import { CountdownCircle } from "../CountdownCircle";
-import { Option } from "../../pages/admin/Started";
+import { Option } from "../../pages/user/Started";
 import { CopyClipboard } from "../Accordion";
-import { ErrorIcons } from "../../pages/admin/Register";
+import { ErrorIcons } from "../../pages/user/Register";
 import { toast } from "sonner";
 
 export type ParticipantProblem = {
