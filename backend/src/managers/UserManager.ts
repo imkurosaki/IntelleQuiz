@@ -2,7 +2,7 @@ import { Socket } from "socket.io";
 import { AdminManager } from "./AdminManager";
 import prisma from "../db";
 import { ParticipantManager } from "./ParticipantManager";
-import { authMiddleware } from "../middlewares/authMiddleware";
+import { socketMiddleware } from "../middlewares/socketMiddleware";
 import { Leaderboard } from "../lib/types/types";
 
 export class UserManager {
@@ -15,8 +15,9 @@ export class UserManager {
    }
 
    addUser(socket: Socket) {
-      socket.on("RegisterAdmin", async ({ username, password }: {
+      socket.on("RegisterAdmin", async ({ username, email, password }: {
          username: string,
+         email: string,
          password: string,
       }, callback: CallableFunction) => {
          if (!username && !password) {
@@ -25,22 +26,26 @@ export class UserManager {
             })
             return;
          }
-         const responseData = await this.adminManager.registerAdmin(username, password);
+         const responseData = await this.adminManager.registerAdmin(username, email, password);
          callback(responseData);
       })
 
-      socket.on("SigninAdmin", async ({ username, password }: {
-         username: string,
+      socket.on("GetCurrentUser", () => {
+         console.log("You are here!")
+      })
+
+      socket.on("SigninAdmin", async ({ email, password }: {
+         email: string,
          password: string
       }) => {
-         this.adminManager.signinAdmin(username, password, socket)
+         this.adminManager.signinAdmin(email, password, socket)
       });
 
       socket.on("addRoom", ({ roomName }: {
          roomName: string,
       }, callback: CallableFunction) => {
          // middleware
-         authMiddleware(socket, async (err: any) => {
+         socketMiddleware(socket, async (err: any) => {
             if (err) {
                return callback({
                   status: 'error',
@@ -60,7 +65,7 @@ export class UserManager {
 
       socket.on("getMyRooms", ({ }, callback: CallableFunction) => {
          // middleware
-         authMiddleware(socket, async (err: any) => {
+         socketMiddleware(socket, async (err: any) => {
             if (err) {
                return callback({
                   status: 'error',
@@ -73,7 +78,7 @@ export class UserManager {
       });
 
       socket.on("deleteRoom", ({ roomId }: { roomId: string }, callback: CallableFunction) => {
-         authMiddleware(socket, async (err: any) => {
+         socketMiddleware(socket, async (err: any) => {
             if (err) {
                return callback({
                   status: 'error',
@@ -95,7 +100,7 @@ export class UserManager {
          countdown: number,
          quizId: string,
       }, callback: CallableFunction) => {
-         authMiddleware(socket, async (err: any) => {
+         socketMiddleware(socket, async (err: any) => {
             if (err) {
                return callback({
                   status: 'error',
@@ -110,7 +115,7 @@ export class UserManager {
          roomId: string,
          quizId: string,
       }, callback: CallableFunction) => {
-         authMiddleware(socket, async (err: any) => {
+         socketMiddleware(socket, async (err: any) => {
             if (err) {
                return callback({
                   status: 'error',
@@ -169,7 +174,7 @@ export class UserManager {
          quizId: string,
          countdown: number
       }, callback: CallableFunction) => {
-         authMiddleware(socket, async (err: any) => {
+         socketMiddleware(socket, async (err: any) => {
             if (err) {
                return callback({
                   status: 'error',
@@ -206,7 +211,7 @@ export class UserManager {
          participantId: string,
          roomId: string,
       }, callback: CallableFunction) => {
-         authMiddleware(socket, async (err: any) => {
+         socketMiddleware(socket, async (err: any) => {
             if (err) {
                return callback({
                   status: 'error',
@@ -222,7 +227,7 @@ export class UserManager {
          roomId: string,
          quizId: string
       }, callback: CallableFunction) => {
-         authMiddleware(socket, async (err: any) => {
+         socketMiddleware(socket, async (err: any) => {
             if (err) {
                return callback({
                   status: 'error',
@@ -241,7 +246,7 @@ export class UserManager {
          problemId: string,
          answer: number,
       }, callback: CallableFunction) => {
-         authMiddleware(socket, async (err: any) => {
+         socketMiddleware(socket, async (err: any) => {
             if (err) {
                return callback({
                   status: 'error',
@@ -253,7 +258,7 @@ export class UserManager {
       })
 
       socket.on("GetRecentlyJoinedRooms", ({ }, callback: CallableFunction) => {
-         authMiddleware(socket, async (err: any) => {
+         socketMiddleware(socket, async (err: any) => {
             if (err) {
                return callback({
                   status: 'error',

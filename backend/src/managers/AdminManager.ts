@@ -186,15 +186,17 @@ export class AdminManager {
       return rooms;
    }
 
-   async registerAdmin(username: string, password: string) {
+   async registerAdmin(username: string, email: string, password: string) {
       try {
          const salt = bcrypt.genSaltSync(10);
          const hashPassword = bcrypt.hashSync(password, salt);
          const result = await prisma.admin.create({
             data: {
                username: username,
+               email: email,
                password: hashPassword,
-               image: Math.floor(Math.random() * 7) + 1
+               image: Math.floor(Math.random() * 7) + 1,
+               signInType: 'Traditional'
             }
          });
          return {
@@ -209,11 +211,11 @@ export class AdminManager {
       }
    }
 
-   async signinAdmin(username: string, password: string, socket: Socket) {
+   async signinAdmin(email: string, password: string, socket: Socket) {
       try {
          const admin = await prisma.admin.findFirst({
             where: {
-               username: username,
+               email: email
             }
          });
 
@@ -233,9 +235,10 @@ export class AdminManager {
                data: {
                   id: admin.id,
                   username: admin.username,
-                  image: admin.image
+                  image: admin.image,
+                  email: admin.email
                },
-               token: `Bearer ${generateToken({ adminId: admin.id, username: admin.username })}`
+               token: `Bearer ${generateToken({ adminId: admin.id })}`
             })
          }
       } catch (e: any) {

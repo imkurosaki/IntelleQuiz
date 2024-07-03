@@ -5,21 +5,23 @@ import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
 import { useSocket } from "../../lib/hooks";
 import { Socket } from "socket.io-client";
-import { adminRegisterInput } from "../../zod/adminValidation.ts";
 import Cookies from 'js-cookie';
 import { ThemeContext } from "../../contexts/ThemeContext.tsx";
 import { ThemeContextInterface } from "../../lib/types.ts";
 import SourceCode from "../../components/SourceCode.tsx";
+import { registerInput } from "../../zod/adminValidation.ts";
+import GoogleAuth from "../../components/GoogleAuth.tsx";
 
 export default function Register() {
    const [username, setUsername] = useState("");
    const [password, setPassword] = useState("");
+   const [email, setEmail] = useState("");
    const navigate = useNavigate();
    const socket: Socket = useSocket("Bearer ");
    const [error, setError] = useState("");
 
    const onClickHandler = () => {
-      const validation: any = adminRegisterInput.safeParse({ username, password });
+      const validation: any = registerInput.safeParse({ username, email, password });
       if (!validation.success) {
          const errors: any = JSON.parse(validation.error.message);
          setError(errors[0].message);
@@ -32,6 +34,7 @@ export default function Register() {
 
       socket.emit("RegisterAdmin", {
          username,
+         email,
          password
       }, ({ status, message }: { status: string, message: string }) => {
          if (status === "error") {
@@ -61,15 +64,27 @@ export default function Register() {
 
    return <div className="flex justify-center bg-bgColor text-bgColor h-screen items-center">
       <div className={` ${!darkTheme ? "text-gray-950" : "text-white"} w-[500px] border border-gray-700 shadow-md px-10 py-14 rounded-lg`}>
+         <GoogleAuth />
+         <p className="text-sm text-gray-500 text-center mt-5 mb-8">or contiue with email</p>
          <div className="flex flex-col gap-6">
             <div className={`${error !== "" ? "block vibrate" : "hidden"} border border-gray-400 rounded-lg text-center py-3 px-2 my-4 bg-red-700 text-sm text-white w-full shadow-lg`}>{error}</div>
             <div>
                <p className="mb-4">Username</p>
                <Input
                   type="text"
-                  placeholder="Username"
+                  placeholder=""
                   onChange={(e: any) => {
                      setUsername(e.target.value);
+                  }}
+               />
+            </div>
+            <div>
+               <p className="mb-4">Email</p>
+               <Input
+                  type="text"
+                  placeholder="your@email.com"
+                  onChange={(e: any) => {
+                     setEmail(e.target.value);
                   }}
                />
             </div>
@@ -77,7 +92,7 @@ export default function Register() {
                <p className="mb-4">Password</p>
                <Input
                   type="password"
-                  placeholder="Password"
+                  placeholder=""
                   onChange={(e: any) => {
                      setPassword(e.target.value);
                   }}
@@ -93,8 +108,8 @@ export default function Register() {
             </Button>
             <Link
                to={'/signin'}
-               className="text-sm hover:underline"
-            >Have already an account? Signin here</Link>
+               className="hover:underline"
+            >Have already an account? Sign In </Link>
          </div>
       </div>
       <SourceCode link={"https://github.com/imkurosaki/real-time-quiz"} />

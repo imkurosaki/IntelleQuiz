@@ -3,6 +3,7 @@ import { atom } from "recoil";
 export interface AdminInfo {
    id: string,
    username: string,
+   email: string,
    image: number
 }
 
@@ -11,6 +12,7 @@ const adminInfo = atom<AdminInfo>({
    default: {
       id: "",
       username: "",
+      email: "",
       image: 0
    },
    effects_UNSTABLE: [

@@ -13,6 +13,10 @@ import RoomSkeleton from "../../components/Skeleton/RoomSkeleton.tsx";
 import { ThemeContextInterface } from "../../lib/types.ts";
 import { ThemeContext } from "../../contexts/ThemeContext.tsx";
 import SourceCode from "../../components/SourceCode.tsx";
+import axios from "axios";
+import { getCookie } from "../../lib/index.ts";
+import { AdminInfo, adminInfo } from "../../store/admin.ts";
+import { useSetRecoilState } from "recoil";
 
 export default function AddRoom() {
    const [disable, setDisable] = useState(true);
@@ -25,6 +29,7 @@ export default function AddRoom() {
    const { darkTheme, toggleTheme } = useContext(
       ThemeContext
    ) as ThemeContextInterface;
+   const setAdminInfoState = useSetRecoilState(adminInfo);
 
    const submitHandler = () => {
       const validation: any = adminAddRoomInput.safeParse({ roomName });
@@ -97,6 +102,32 @@ export default function AddRoom() {
          setRooms(rooms);
          setLoading(false);
       })
+
+      const fetchData = async () => {
+         const token = getCookie('token');
+         if (!token) {
+            console.log("No token")
+            return;
+         }
+
+         try {
+            const response = await axios.get('http://localhost:3000/auth/getCurrentUser', {
+               headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': token
+               }
+            })
+
+            setAdminInfoState(response.data);
+         } catch (error: any) {
+            toast(error.response.data.message, {
+               className: "bg-gray-950 text-white",
+               duration: 5000,
+               icon: <ErrorIcons />
+            })
+         }
+      };
+      fetchData();
 
       return () => {
          socket.off("error");

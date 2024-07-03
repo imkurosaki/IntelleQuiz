@@ -36,3 +36,15 @@ export const widthStyle = (points: number) => {
 export const removeCookie = (cookieName: string) => {
    document.cookie = cookieName + "=; expires=Thu, 01 Jan 1980 00:00:00 UTC; path=/";
 }
+
+export const getCookie = (cookieName: string) => {
+   const cookies = document.cookie.split(',');
+
+   for (let i = 0; i < cookies.length; i++) {
+      const [key, value] = cookies[i].trim().split('=');
+      if (key === cookieName) {
+         return value;
+      }
+   }
+   return undefined;
+}

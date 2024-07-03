@@ -1,52 +1,36 @@
-import { Socket } from "socket.io";
-import jwt from "jsonwebtoken"
-import prisma from "../db";
+import { NextFunction, Request, Response } from 'express';
+import jwt from "jsonwebtoken";
+import prisma from '../db';
 
-interface DecodeToken {
-   id: string,
-}
+export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+   const token = req.headers['authorization']?.split("%20")[1];
 
-declare module 'socket.io' {
-   interface Socket {
-      decoded: DecodeToken;
-   }
-}
-
-export const authMiddleware = async (socket: Socket, next: (err?: Error) => void) => {
-   const tokenToVerify: string = socket.handshake.auth.token?.split("Bearer ")[1];
-
-   if (!tokenToVerify) {
-      return next(new Error('Unauthorized token'));
+   if (!token) {
+      res.status(411).json({ message: "Access Denied" });
+      return
    }
 
    try {
-      if (!process.env.JWT_SECRET) {
-         return;
-      }
-
-      const decodedPayload: any = jwt.verify(tokenToVerify, process.env.JWT_SECRET);
+      const decodedPayload: any = jwt.verify(token, process.env.JWT_SECRET || "no-secret")
 
       if (!decodedPayload.adminId) {
-         return next(new Error('Unauthorized token'));
+         throw new Error;
       }
 
-      const isAdminIdExist: { id: string } | null = await prisma.admin.findFirst({
+      const user: any = await prisma.admin.findUnique({
          where: {
             id: decodedPayload.adminId
-         },
-         select: {
-            id: true
          }
-      })
+      });
 
-      if (!isAdminIdExist) {
-         return next(new Error('Unauthorized token'))
+      if (!user) {
+         throw new Error("User doesn't exist");
       }
-
-      socket.decoded = { id: isAdminIdExist.id }
+      req.user = user;
       next();
-   } catch (err: any) {
-      return next(new Error('Unauthorized token'));
+   } catch (e: any) {
+      res.status(411).json({
+         message: "Unauthorized token"
+      })
    }
 }
-

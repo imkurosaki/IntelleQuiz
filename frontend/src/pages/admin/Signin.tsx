@@ -7,15 +7,16 @@ import { useSetRecoilState } from "recoil";
 import { AdminInfo, adminInfo } from "../../store/admin.ts";
 import { useSocket } from "../../lib/hooks.ts";
 import { Socket } from "socket.io-client";
-import { adminRegisterInput } from "../../zod/adminValidation.ts";
+import { adminRegisterInput, signinInput } from "../../zod/adminValidation.ts";
 import Cookies from 'js-cookie'
 import { ThemeContext } from "../../contexts/ThemeContext.tsx";
 import { ThemeContextInterface } from "../../lib/types.ts";
 import SourceCode from "../../components/SourceCode.tsx";
 import gitHub from "../../assets/github-mark.svg";
+import GoogleAuth from "../../components/GoogleAuth.tsx";
 
 export default function Signin() {
-   const [username, setUsername] = useState("");
+   const [email, setEmail] = useState("");
    const [password, setPassword] = useState("");
    const navigate = useNavigate();
    const setAdminInfo = useSetRecoilState<AdminInfo>(adminInfo);
@@ -23,7 +24,7 @@ export default function Signin() {
    const [error, setError] = useState("");
 
    const onClickHandler = () => {
-      const validation: any = adminRegisterInput.safeParse({ username, password });
+      const validation: any = signinInput.safeParse({ email, password });
       if (!validation.success) {
          const errors: any = JSON.parse(validation.error.message);
          setError(errors[0].message);
@@ -35,7 +36,7 @@ export default function Signin() {
       }
 
       socket.emit("SigninAdmin", {
-         username,
+         email,
          password
       });
    }
@@ -60,6 +61,7 @@ export default function Signin() {
          setAdminInfo({
             id: data.id,
             username: data.username,
+            email: data.email,
             image: data.image
          })
          // set the cookie
@@ -90,15 +92,17 @@ export default function Signin() {
 
    return <div className="flex justify-center bg-bgColor text-bgColor h-screen items-center">
       <div className={` ${!darkTheme ? "text-gray-950" : "text-white"} w-[500px] border border-gray-700 shadow-md px-10 py-14 rounded-lg`}>
+         <GoogleAuth />
+         <p className="text-sm text-gray-500 text-center mt-5 mb-8">or contiue with email</p>
          <div className={`flex flex-col gap-6 `}>
             <div className={`${error !== "" ? "block vibrate" : "hidden"} border border-gray-400 rounded-lg text-center py-3 px-2 my-4 bg-red-700 text-sm text-white w-full shadow-lg`}>{error}</div>
             <div>
-               <p className="mb-4">Username</p>
+               <p className="mb-4">Email</p>
                <Input
                   type="text"
-                  placeholder="Username"
+                  placeholder="your@email.com"
                   onChange={(e: any) => {
-                     setUsername(e.target.value);
+                     setEmail(e.target.value);
                   }}
                />
             </div>
@@ -122,11 +126,11 @@ export default function Signin() {
             </Button>
             <Link
                to={'/register'}
-               className="text-sm hover:underline"
-            >Don't an account yet? Register here</Link>
+               className="hover:underline"
+            >Do not have an account yet? Sign Up </Link>
          </div>
       </div>
-      <SourceCode link={"https://github.com/imkurosaki/real-time-quiz"} icon={gitHub} />
+      <SourceCode link={"https://github.com/imkurosaki/real-time-quiz"} />
    </div>
 }
 

@@ -2,7 +2,6 @@ import { Socket } from "socket.io-client"
 import { toast } from "sonner"
 import { ErrorIcons } from "../pages/admin/Register"
 import { useNavigate } from "react-router-dom"
-import { useEffect } from "react"
 
 export default function RoomCard({ name, roomId, status, socket }: {
    name: string,
@@ -11,11 +10,6 @@ export default function RoomCard({ name, roomId, status, socket }: {
    socket: Socket
 }) {
    const navigate = useNavigate();
-
-   useEffect(() => {
-      // TODO: make the a leaderboard if the operation of the quiz is a leader board
-
-   }, [])
 
    return <div onClick={() => {
       navigate(`${roomId}`)

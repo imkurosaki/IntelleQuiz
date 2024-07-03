@@ -32,7 +32,7 @@ export default function Navbar() {
                Add Room
             </button>
          }
-         <DropDownProfile image={adminInfoState.image.toString()} username={adminInfoState.username} />
+         <DropDownProfile image={adminInfoState.image.toString()} email={adminInfoState.email} />
       </div>
    </div>
 }

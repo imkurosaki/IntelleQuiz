@@ -14,12 +14,14 @@ datasource db {
 }
 
 model Admin {
-   id        String   @id @default(uuid())
-   username  String   @unique
-   password  String
-   createdAt DateTime @default(now())
-   updatedAt DateTime @updatedAt
-   image     Int
+   id         String   @id @default(uuid())
+   username   String
+   email      String   @unique
+   password   String
+   createdAt  DateTime @default(now())
+   updatedAt  DateTime @updatedAt
+   image      Int
+   signInType String
 
    points       Points[]
    joinedRooms  Room[]   @relation("UserRooms")
