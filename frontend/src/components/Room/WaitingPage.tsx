@@ -42,7 +42,7 @@ export default function WaitingPage({ participants, user, noOfProblems }: {
 }
 
 export function UserCard({ id, username, points, image }: Participant) {
-   return <div className="bounce-left flex w-full justify-between items-center border border-gray-300 px-8 py-4 bg-gray-200 rounded-lg hover:bg-gray-300 cursor-pointer shadow-md">
+   return <div className="bounce-left text-gray-950 flex w-full justify-between items-center border border-gray-300 px-8 py-4 bg-gray-200 rounded-lg hover:bg-gray-300 cursor-pointer shadow-md">
       <div className="flex gap-8 items-center">
          <img src={image} alt=""
             className="w-16 rounded-full border border-gray-700"

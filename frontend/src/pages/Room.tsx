@@ -75,7 +75,7 @@ export default function Room() {
          setStatus(status);
       })
 
-      socket.on("participants", (participants: Participant[]) => {
+      socket.on("participants", ({ participants }: { participants: Participant[] }) => {
          setPartcipants(participants);
       })
 
