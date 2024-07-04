@@ -14,6 +14,7 @@ import { ErrorIcons } from "./Register.tsx";
 import { toast } from "sonner";
 import { CopyClipboard } from "../../components/Accordion.tsx";
 import OptionEnd from "./OptionEnd.tsx";
+import LeaderBoardSkeleton from "../../components/Skeleton/LeaderboardSkeleton.tsx";
 
 export type UserProblem = {
    title: string;
@@ -48,6 +49,7 @@ export default function Started() {
    const [roomId, setRoomId] = useState("");
    const [noOfProblems, setNoOfProblems] = useState(0);
    const [currentProblem, setCurrentProblem] = useState(0);
+   const [isloading, setIsloading] = useState(true);
 
    useEffect(() => {
       if (!Cookies.get('token')) {
@@ -62,6 +64,7 @@ export default function Started() {
          currentProblem: number,
          index: number
       }) => {
+         setIsloading(false);
          setNoOfProblems(noOfProblems);
          setCurrentProblem(currentProblem);
          setRoomId(roomId);
@@ -107,6 +110,11 @@ export default function Started() {
       }
    }, [socket, userInfoAtomState, navigate])
 
+   if (isloading) {
+      return <div className="pt-40">
+         <LeaderBoardSkeleton />
+      </div>
+   }
 
    if (status === "LEADERBOARD") {
       return <div className="flex flex-col items-center pt-24">
@@ -119,7 +127,10 @@ export default function Started() {
                      socket.emit("next", {
                         roomId,
                         quizId: problem.quizId
-                     })
+                     });
+                     if (noOfProblems !== currentProblem) {
+                        setIsloading(true);
+                     }
                   }}
                   className="py-2 px-3 text-white rounded-lg border-2 border-gray-200"
                   disabled={operation === "start-automatically" ? true : false}

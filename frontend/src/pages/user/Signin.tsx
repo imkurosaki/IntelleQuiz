@@ -80,7 +80,6 @@ export default function Signin() {
          // set the user info in localStorage
          setUserInfo(data);
 
-         await new Promise((r) => setTimeout(r, 3000))
          setLoading(true);
          toast.success(message, {
             duration: 5000
