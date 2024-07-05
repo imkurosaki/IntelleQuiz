@@ -1,0 +1,59 @@
+version: '3.5'
+
+services:
+  web: 
+    build: ./frontend
+    container_name: intellequiz-frontend
+    ports:
+      - '5174:5174'
+    environment:
+      - VITE_API_BASE_URL=http://localhost:3000/api/v1
+      - VITE_SOCKET_URL=ws://localhost:3000
+    depends_on:
+      - api
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend
+          target: /app
+        - action: rebuild
+          path: ./client/package*.json
+
+  api: 
+    build: ./backend
+    container_name: intellequiz-backend
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/postgres
+      - JWT_SECRET="your_secret"
+      - GOOGLE_CLIENT_ID="your_google_clientId"
+      - GOOGLE_CLIENT_SECRET="your_google_secret"
+      - GOOGLE_CALLBACK_URL=http://localhost:3000/api/v1/google/callback
+      - CLIENT_SSO_REDIRECT_URL=http://localhost:5174/room
+      - CORS_ORIGIN=http://localhost:5174
+    depends_on:
+      - db
+    ports:
+      - '3000:3000'
+    develop:
+      watch:
+        - action: sync
+          path: ./backend/src
+          target: /app/src
+        - action: rebuild
+          path: ./backend/package*.json
+
+  db:
+    image: postgres:latest
+    container_name: db
+    restart: always
+    environment: 
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

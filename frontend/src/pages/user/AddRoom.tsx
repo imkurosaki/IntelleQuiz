@@ -30,6 +30,7 @@ export default function AddRoom() {
       ThemeContext
    ) as ThemeContextInterface;
    const setUserInfoState = useSetRecoilState(userInfoAtom);
+   const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
    const submitHandler = () => {
       const validation: any = adminAddRoomInput.safeParse({ roomName });
@@ -111,7 +112,7 @@ export default function AddRoom() {
          }
 
          try {
-            const response = await axios.get('http://localhost:3000/auth/getCurrentUser', {
+            const response = await axios.get(`${apiUrl}/getCurrentUser`, {
                headers: {
                   'Content-Type': 'application/json',
                   'Authorization': token

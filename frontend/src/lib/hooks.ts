@@ -9,6 +9,7 @@ interface CustomSocket extends Socket {
 let socket: CustomSocket | null = null;
 
 export const useSocket = (token: string | null): Socket => {
+   const socketUrl = import.meta.env.VITE_SOCKET_URL;
    if (!socket || (token && socket.auth.token !== token)) {
       // Disconnect existing socket if token changes
       if (socket) {
@@ -23,7 +24,7 @@ export const useSocket = (token: string | null): Socket => {
             }
          };
 
-         socket = io("ws://localhost:3000", socketOptions) as CustomSocket;
+         socket = io(socketUrl, socketOptions) as CustomSocket;
 
          socket.on('connect', () => {
             console.log("Connected to server");

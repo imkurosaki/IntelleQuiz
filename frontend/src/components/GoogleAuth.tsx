@@ -7,9 +7,10 @@ export default function GoogleAuth() {
    const { darkTheme, toggleTheme } = useContext(
       ThemeContext
    ) as ThemeContextInterface;
+   const apiUrl = import.meta.env.VITE_API_BASE_URL
 
    return <button onClick={() => {
-      window.location.href = 'http://localhost:3000/auth/google'
+      window.location.href = `${apiUrl}/google`
    }}
       className={`${darkTheme ? "hover:bg-gray-800" : "hover:bg-gray-200"} grid grid-cols-12 items-center border border-gray-800 rounded-lg text-center py-2 px-6 font-light `}
    >

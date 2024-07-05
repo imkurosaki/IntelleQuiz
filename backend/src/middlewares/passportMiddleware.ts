@@ -13,7 +13,6 @@ passport.deserializeUser(async (id: string, next: any) => {
             id: id
          }
       });
-      console.log("deserializeUser " + JSON.stringify(user))
       if (user) {
          next(null, user);
       } else {

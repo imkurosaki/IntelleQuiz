@@ -13,7 +13,7 @@ const app: Application = express();
 
 export const httpServer = createServer(app);
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {
    console.log(`Socket is listening to port ${PORT}`);
 })
@@ -23,7 +23,7 @@ app.use(cookieParser());
 
 // Middleware
 app.use(cors({
-   origin: 'http://localhost:5174', // Your React app's URL
+   origin: process.env.CORS_ORIGIN, // Your React app's URL
    credentials: true,
 }));
 app.use(session({ secret: 'secretKey', resave: false, saveUninitialized: true }));
@@ -32,7 +32,7 @@ app.use(passport.session());
 app.use(passport.initialize());
 
 // Routes
-app.use('/auth', authRouter);
+app.use('/api/v1', authRouter);
 
 // Socket.IO
 const io: Server = IoManager.getIo(httpServer)

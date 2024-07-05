@@ -7,6 +7,7 @@ import prisma from "../db";
 import { generateToken } from "../lib/generateToken";
 import { Leaderboard } from "../lib/types/types";
 import bcrypt from "bcrypt";
+import { PrismaClient } from "@prisma/client";
 
 export enum Status {
    Waiting = "waiting",
@@ -354,7 +355,7 @@ export class AdminManager {
       }
 
       try {
-         await prisma.$transaction(async (prisma) => {
+         await prisma.$transaction(async (prisma: any) => {
             const quiz = await prisma.quiz.update({
                where: {
                   id: quizId,
@@ -481,7 +482,7 @@ export class AdminManager {
 
       const problem = room.quizes[0].problems[quiz.currentProblem];
       try {
-         await prisma.$transaction(async (prisma) => {
+         await prisma.$transaction(async (prisma: any) => {
             // Update Quiz
             const newQuiz = await prisma.quiz.update({
                where: {
@@ -562,7 +563,7 @@ export class AdminManager {
       })
 
       try {
-         await prisma.$transaction(async (prisma) => {
+         await prisma.$transaction(async (prisma: any) => {
             await prisma.room.update({
                where: {
                   id: roomId

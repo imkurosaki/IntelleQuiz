@@ -9,7 +9,7 @@ const handleSocialSignIn = async (req: any, res: Response) => {
       return res
          .status(200)
          .cookie('token', `Bearer ${generateToken({ userId: userId })}`)
-         .redirect('http://localhost:5174/room');
+         .redirect(process.env.CLIENT_SSO_REDIRECT_URL || 'redirect_page');
    } catch (e: any) {
       console.log(e);
    }
