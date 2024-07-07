@@ -11,11 +11,19 @@ import FindRoom from "./components/Room/FindRoom"
 import RoomLeaderboard from "./components/Room/RoomLeaderboard"
 import AuthLayout from "./pages/AuthLayout"
 import MainLayout from "./pages/MainLayout"
+import Home from "./pages/Home"
 
 const router = createBrowserRouter([
    {
       path: "/",
       children: [
+         {
+            path: "",
+            element: <>
+               <AuthLayout />
+               <Home />
+            </>
+         },
          {
             element: <AuthLayout />,
             children: [

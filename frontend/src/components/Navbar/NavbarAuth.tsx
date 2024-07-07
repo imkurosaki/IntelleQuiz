@@ -1,13 +1,18 @@
 import { useContext } from "react";
 import { ThemeContext } from "../../contexts";
 import { ThemeContextInterface } from "../../lib/types";
+import { Link } from "react-router-dom";
 
 
 export default function NavbarAuth() {
    const { darkTheme, toggleTheme } = useContext(
       ThemeContext
    ) as ThemeContextInterface;
-   return <div className="w-full flex fixed top-0 justify-end pe-20 z-50 bg-bgColor pt-6">
+   return <div className="w-full flex fixed top-0 justify-between items-center px-36 z-50 bg-bgColor pt-6">
+      <Link
+         to={"https://x.com/kurosaki22_ken"}
+         target="_blank"
+         className={`${darkTheme ? "text-gray-50" : "text-gray-900"} cursor-pointer text-lg font-light animate-pulse`}>From <span className="font-medium">Kurosaki....</span></Link>
       <div
          onClick={toggleTheme}
          className={`flex justify-between cursor-pointer hover:drop-shadow-[-0.2rem_0_1rem_#f0f0f0] py-4 px-2 `}>
