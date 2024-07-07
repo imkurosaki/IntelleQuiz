@@ -107,7 +107,6 @@ export default function AddRoom() {
       const fetchData = async () => {
          const token = getCookie('token');
          if (!token) {
-            console.log("No token")
             return;
          }
 
@@ -136,7 +135,7 @@ export default function AddRoom() {
          socket.off("getRoom")
          socket.off("getMyRooms")
       };
-   }, [socket, navigate])
+   }, [socket, navigate, apiUrl, setUserInfoState]);
 
    return <div className="px-20 pb-16 pt-28">
       <div className="w-[500px]">

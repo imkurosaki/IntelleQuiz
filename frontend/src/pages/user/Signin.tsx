@@ -25,6 +25,7 @@ export default function Signin() {
    const socket: Socket = useSocket("Bearer ");
    const [error, setError] = useState("");
    const [isLoading, setLoading] = useState(true);
+   const [isLoadingGuest, setLoadingGuest] = useState(true);
 
    const onClickHandler = () => {
       setLoading(false);
@@ -43,6 +44,14 @@ export default function Signin() {
       socket.emit("SigninUser", {
          email,
          password
+      });
+   }
+
+   const loginGuestHandler = () => {
+      setLoadingGuest(false);
+      socket.emit("SigninUser", {
+         email: "test@gmail.com",
+         password: "password"
       });
    }
 
@@ -143,8 +152,21 @@ export default function Signin() {
             </Button>
             <Link
                to={'/register'}
-               className="hover:underline"
+               className="hover:underline text-center"
             >Do not have an account yet? Sign Up </Link>
+            {/* Guest button */}
+            <button
+               onClick={loginGuestHandler}
+               className={`${darkTheme ? "text-gray-50 bg-bgColor hover:bg-gray-900" : "text-gray-800 hover:bg-gray-100"} py-3 px-4 mt-4 rounded-lg border border-gray-800`}
+               disabled={!isLoadingGuest}
+            >
+               {isLoadingGuest
+                  ?
+                  <p>Sign in as Guest</p>
+                  :
+                  <LoadingCircle />
+               }
+            </button>
          </div>
       </div>
       <SourceCode link={"https://github.com/imkurosaki/real-time-quiz"} />

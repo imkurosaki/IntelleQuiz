@@ -125,7 +125,7 @@ export default function Register() {
             </Button>
             <Link
                to={'/signin'}
-               className="hover:underline"
+               className="hover:underline text-center"
             >Have already an account? Sign In </Link>
          </div>
       </div>
