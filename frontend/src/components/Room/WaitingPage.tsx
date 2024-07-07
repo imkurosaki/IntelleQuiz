@@ -30,6 +30,7 @@ export default function WaitingPage({ participants, user, noOfProblems }: {
             {participants.map((participant: Participant) => {
                const avatarRef = getImageUrl(participant.image);
                return <UserCard key={participant.id}
+                  id={participant.id}
                   username={participant.username}
                   points={participant.points}
                   image={avatarRef}

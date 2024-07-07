@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 import Quizes, { ParticipantProblem } from "../components/Room/Quizes";
 import WaitingPage, { Participant } from "../components/Room/WaitingPage";
 import Leaderboard from "../components/Room/Leaderboard";
@@ -32,7 +32,7 @@ export default function Room() {
       points: 0
    })
    const socket: Socket = useSocket(Cookies.get('token') || "Bearer ");
-   const [participantInfoAtom, setParticipantAtom] = useRecoilState(participantInfo);
+   const [, setParticipantAtom] = useRecoilState(participantInfo);
    const userInfoState = useRecoilValue<UserInfo>(userInfoAtom);
    const [currentProblem, setCurrentProblem] = useState(0);
    const [noOfProblems, setNoOfProblems] = useState(0);
