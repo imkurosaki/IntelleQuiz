@@ -10,14 +10,14 @@ export default function Leaderboard({ leaderboard }: {
          <p className="text-5xl ps-28 mb-16">Leaderboard Results</p>
          <div className="flex flex-col gap-3">
             {leaderboard.map((element: any, key: number) => {
-               return <PointsUserCard key={key} id={element.participant.id} username={element.participant.username} points={element.points} image={element.participant.image.toString()} />
+               return <PointsUserCard key={key} username={element.participant.username} points={element.points} image={element.participant.image.toString()} />
             })}
          </div>
       </div>
    </div>
 }
 
-export function PointsUserCard({ id, username, points, image }:
+export function PointsUserCard({ username, points, image }:
    Participant
 ) {
    return <div className="bounce-left flex items-center gap-3">

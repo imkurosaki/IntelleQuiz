@@ -30,7 +30,6 @@ export default function WaitingPage({ participants, user, noOfProblems }: {
             {participants.map((participant: Participant) => {
                const avatarRef = getImageUrl(participant.image);
                return <UserCard key={participant.id}
-                  id={participant.id}
                   username={participant.username}
                   points={participant.points}
                   image={avatarRef}
@@ -41,7 +40,7 @@ export default function WaitingPage({ participants, user, noOfProblems }: {
    </div>
 }
 
-export function UserCard({ id, username, points, image }: Participant) {
+export function UserCard({ username, points, image }: Participant) {
    return <div className="bounce-left text-gray-950 flex w-full justify-between items-center border border-gray-300 px-8 py-4 bg-gray-200 rounded-lg hover:bg-gray-300 cursor-pointer shadow-md">
       <div className="flex gap-8 items-center">
          <img src={image} alt=""

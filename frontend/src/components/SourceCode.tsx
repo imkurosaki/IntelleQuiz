@@ -6,7 +6,7 @@ import { useContext } from "react";
 export default function SourceCode({ link }: {
    link: string,
 }) {
-   const { darkTheme, toggleTheme } = useContext(
+   const { darkTheme } = useContext(
       ThemeContext
    ) as ThemeContextInterface;
 

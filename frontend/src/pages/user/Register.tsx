@@ -65,7 +65,7 @@ export default function Register() {
       }
    }, [navigate]);
 
-   const { darkTheme, toggleTheme } = useContext(
+   const { darkTheme } = useContext(
       ThemeContext
    ) as ThemeContextInterface;
 

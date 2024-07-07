@@ -14,7 +14,7 @@ export default function QuizControl({ isReady, quizId, roomId }: {
 }) {
    const socket: Socket = useSocket(Cookies.get('token') || "Bearer ");
    const navigate = useNavigate();
-   const { darkTheme, toggleTheme } = useContext(
+   const { darkTheme } = useContext(
       ThemeContext
    ) as ThemeContextInterface;
 

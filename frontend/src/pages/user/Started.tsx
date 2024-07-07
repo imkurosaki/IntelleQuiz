@@ -56,13 +56,12 @@ export default function Started() {
          navigate('/signin')
       }
 
-      socket.on("adminProblem", ({ problem, currentProblem, roomId, status, noOfProblems, index }: {
+      socket.on("adminProblem", ({ problem, currentProblem, roomId, status, noOfProblems }: {
          problem: UserProblem,
          roomId: string,
          status: string,
          noOfProblems: number,
          currentProblem: number,
-         index: number
       }) => {
          setIsloading(false);
          setNoOfProblems(noOfProblems);

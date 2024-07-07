@@ -10,14 +10,13 @@ import { StatusCircle } from "../RoomCard";
 import FindRoomSkeleton from "../Skeleton/FindRoomSkeleton";
 import { ThemeContext } from "../../contexts";
 import { ThemeContextInterface } from "../../lib/types";
-import SourceCode from "../SourceCode";
 
 export default function FindRoom() {
    const navigate = useNavigate();
    const socket: Socket = useSocket(Cookies.get('token') || "Bearer ");
    const [roomsJoined, setRoomsJoined] = useState([]);
    const [loading, setLoading] = useState(true);
-   const { darkTheme, toggleTheme } = useContext(
+   const { darkTheme } = useContext(
       ThemeContext
    ) as ThemeContextInterface;
 
@@ -89,7 +88,7 @@ export function JoinRoomCard({ roomName, roomId, quizId, status, score, userName
    userName: string
 }) {
    const navigate = useNavigate();
-   const { darkTheme, toggleTheme } = useContext(
+   const { darkTheme } = useContext(
       ThemeContext
    ) as ThemeContextInterface;
 

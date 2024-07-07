@@ -7,12 +7,11 @@ import { useSetRecoilState } from "recoil";
 import { UserInfo, userInfoAtom } from "../../store/user.ts";
 import { useSocket } from "../../lib/hooks.ts";
 import { Socket } from "socket.io-client";
-import { userRegisterInput, signinInput } from "../../zod/authValidation.ts";
+import { signinInput } from "../../zod/authValidation.ts";
 import Cookies from 'js-cookie'
 import { ThemeContext } from "../../contexts/ThemeContext.tsx";
 import { ThemeContextInterface } from "../../lib/types.ts";
 import SourceCode from "../../components/SourceCode.tsx";
-import gitHub from "../../assets/github-mark.svg";
 import GoogleAuth from "../../components/GoogleAuth.tsx";
 import Title from "../../components/Navbar/Title.tsx";
 import LoadingCircle from "../../components/LoadingCircle.tsx";
@@ -102,7 +101,7 @@ export default function Signin() {
       }
    }, [socket, setUserInfo, navigate])
 
-   const { darkTheme, toggleTheme } = useContext(
+   const { darkTheme } = useContext(
       ThemeContext
    ) as ThemeContextInterface;
 

@@ -4,7 +4,7 @@ import { ThemeContextInterface } from "../lib/types";
 
 
 export default function GoogleAuth() {
-   const { darkTheme, toggleTheme } = useContext(
+   const { darkTheme } = useContext(
       ThemeContext
    ) as ThemeContextInterface;
    const apiUrl = import.meta.env.VITE_API_BASE_URL

@@ -6,7 +6,7 @@ import ReactPlayer from 'react-player/youtube';
 import SourceCode from "../components/SourceCode";
 
 export default function Home() {
-   const { darkTheme, toggleTheme } = useContext(
+   const { darkTheme } = useContext(
       ThemeContext
    ) as ThemeContextInterface;
    const navigate = useNavigate();

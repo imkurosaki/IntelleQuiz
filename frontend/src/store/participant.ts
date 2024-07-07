@@ -1,12 +1,12 @@
 import { atom } from "recoil";
-import { Problem } from "../components/Room/Quizes";
+import { ParticipantProblem } from "../components/Room/Quizes";
 
 export interface ParticipantInfo {
    id: string;
    roomId: string;
    status: string;
    image: string;
-   problems: Problem[];
+   problems: ParticipantProblem[];
    success: boolean;
    error?: string | null
 }

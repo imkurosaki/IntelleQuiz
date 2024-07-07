@@ -12,21 +12,20 @@ import RoomCard from "../../components/RoomCard.tsx";
 import RoomSkeleton from "../../components/Skeleton/RoomSkeleton.tsx";
 import { ThemeContextInterface } from "../../lib/types.ts";
 import { ThemeContext } from "../../contexts/ThemeContext.tsx";
-import SourceCode from "../../components/SourceCode.tsx";
 import axios from "axios";
 import { getCookie } from "../../lib/index.ts";
-import { UserInfo, userInfoAtom } from "../../store/user.ts";
+import { userInfoAtom } from "../../store/user.ts";
 import { useSetRecoilState } from "recoil";
 
 export default function AddRoom() {
-   const [disable, setDisable] = useState(true);
+   const [, setDisable] = useState(true);
    const [roomName, setRoomName] = useState("");
    const navigate = useNavigate();
    const socket: Socket = useSocket(Cookies.get('token') || "Bearer ");
    const [error, setError] = useState("");
    const [rooms, setRooms]: any = useState([]);
    const [loading, setLoading] = useState(true);
-   const { darkTheme, toggleTheme } = useContext(
+   const { darkTheme } = useContext(
       ThemeContext
    ) as ThemeContextInterface;
    const setUserInfoState = useSetRecoilState(userInfoAtom);
