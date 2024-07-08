@@ -13,6 +13,7 @@
     "@types/js-cookie": "^3.0.6",
     "axios": "^1.7.2",
     "js-cookie": "^3.0.5",
+    "pubnub": "^8.2.5",
     "react": "^18.2.0",
     "react-countdown-circle-timer": "^3.2.1",
     "react-dom": "^18.2.0",
@@ -24,6 +25,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/pubnub": "^7.4.2",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
     "@typescript-eslint/eslint-plugin": "^7.2.0",

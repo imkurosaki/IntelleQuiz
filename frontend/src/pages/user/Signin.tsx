@@ -15,6 +15,7 @@ import SourceCode from "../../components/SourceCode.tsx";
 import GoogleAuth from "../../components/GoogleAuth.tsx";
 import Title from "../../components/Navbar/Title.tsx";
 import LoadingCircle from "../../components/LoadingCircle.tsx";
+import pubnub from "../../pubnub.ts";
 
 export default function Signin() {
    const [email, setEmail] = useState("");
@@ -40,10 +41,17 @@ export default function Signin() {
          return;
       }
 
-      socket.emit("SigninUser", {
-         email,
-         password
-      });
+      // socket.emit("SigninUser", {
+      //    email,
+      //    password
+      // });
+      pubnub.publish({
+         channel: "SigninUser",
+         message: {
+            email,
+            password
+         }
+      })
    }
 
    const loginGuestHandler = () => {
@@ -58,44 +66,77 @@ export default function Signin() {
       if (Cookies.get('token')) {
          navigate('/room')
       }
-      socket.on("error", async ({ error }: { error: string }) => {
-         setLoading(true);
-         toast(error, {
-            className: "bg-gray-950 text-white",
-            duration: 5000,
-            icon: <ErrorIcons />
-         })
-      });
+      // socket.on("error", async ({ error }: { error: string }) => {
+      //    setLoading(true);
+      //    toast(error, {
+      //       className: "bg-gray-950 text-white",
+      //       duration: 5000,
+      //       icon: <ErrorIcons />
+      //    })
+      // });
 
-      socket.on("signed", async ({ message, data, token }: {
-         message: string,
-         data: UserInfo,
-         token: string
-      }) => {
-         setUserInfo({
-            id: data.id,
-            username: data.username,
-            email: data.email,
-            image: data.image
-         })
-         // set the cookie
-         Cookies.set('token', token, {
-            expires: 5,
-            secure: true,
-            sameSite: 'Strict'
-         });
+      // socket.on("signed", async ({ message, data, token }: {
+      //    message: string,
+      //    data: UserInfo,
+      //    token: string
+      // }) => {
+      //    setUserInfo({
+      //       id: data.id,
+      //       username: data.username,
+      //       email: data.email,
+      //       image: data.image
+      //    })
+      //    // set the cookie
+      //    Cookies.set('token', token, {
+      //       expires: 5,
+      //       secure: true,
+      //       sameSite: 'Strict'
+      //    });
+      //
+      //    // set the user info in localStorage
+      //    setUserInfo(data);
+      //
+      //    setLoading(true);
+      //    toast.success(message, {
+      //       duration: 5000
+      //    });
+      //    navigate("/room");
+      // })
 
-         // set the user info in localStorage
-         setUserInfo(data);
+      const subscribeChannel: any = pubnub.subscribe({
+         channels: ["signed"],
+         message: ({ message, data, token }: {
+            message: string,
+            data: UserInfo,
+            token: string
+         }) => {
 
-         setLoading(true);
-         toast.success(message, {
-            duration: 5000
-         });
-         navigate("/room");
+            setUserInfo({
+               id: data.id,
+               username: data.username,
+               email: data.email,
+               image: data.image
+            })
+            // set the cookie
+            Cookies.set('token', token, {
+               expires: 5,
+               secure: true,
+               sameSite: 'Strict'
+            });
+
+            // set the user info in localStorage
+            setUserInfo(data);
+
+            setLoading(true);
+            toast.success(message, {
+               duration: 5000
+            });
+            navigate("/room");
+         }
       })
 
       return () => {
+         pubnub.unsubscribe(subscribeChannel);
          socket.off("error")
          socket.off("signed")
       }
