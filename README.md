@@ -154,10 +154,6 @@
       npm run dev 
       ```
 
-    - **Explore the API:**
-
-      Access the project APIs at the specified endpoints using [API Docs](https://documenter.getpostman.com/view/31850881/2sA3Bn7srM).
-
 4.  **Setup Frontend:**
 
     - **Navigate to the Frontent Codebase:**
@@ -197,7 +193,7 @@
 
     - **Open app in browser:**
 
-      Visit [https://localhost:5173](https://localhost:5173) to access frontent.
+      Visit [https://localhost:5174](https://localhost:5174) to access frontent.
 
 <br>
 
