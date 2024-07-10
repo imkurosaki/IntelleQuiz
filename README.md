@@ -1,4 +1,4 @@
-<h1 align="center">ZippyX</h1>
+<h1 align="center">IntelleQuiz</h1>
 
 <p align="center">
     Speed up your quiz journey with IntelleQuiz - knowledge in a flash.
